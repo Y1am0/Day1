@@ -45,7 +45,7 @@ export default function HabitListItem({ habit, onEdit, onDelete, isCollapsed }: 
                 <Settings className="w-4 h-4 text-muted-foreground transition-colors duration-300" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-popover text-popover-foreground">
+            <DropdownMenuContent className="bg-popover text-popover-foreground" >
               <DropdownMenuItem onSelect={() => onEdit(habit)} className="text-foreground transition-colors duration-300">
                 <Edit2 className="w-4 h-4 mr-2 text-muted-foreground transition-colors duration-300" />
                 Edit
@@ -66,7 +66,7 @@ export default function HabitListItem({ habit, onEdit, onDelete, isCollapsed }: 
                 <Settings className="w-4 h-4 text-muted-foreground transition-colors duration-300" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-popover text-popover-foreground">
+            <DropdownMenuContent className="bg-popover text-popover-foreground" side={'right'}>
               <DropdownMenuItem onSelect={() => onEdit(habit)} className="text-foreground transition-colors duration-300">
                 <Edit2 className="w-4 h-4 mr-2 text-muted-foreground transition-colors duration-300" />
                 Edit

@@ -1,13 +1,14 @@
 import React, { forwardRef } from 'react'
-import { Menu, Calendar, Sun, Moon, CircleUserRound } from 'lucide-react'
+import { Menu, Calendar, Sun, Moon, CircleUserRound, LogOut, User } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import HabitListItem from './HabitListItem'
 import { Habit } from '@/types'
 import { useTheme } from './ThemeContext'
 import LogoIcon from '@/app/icons/logo'
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react"
 import Image from 'next/image'
-
+import Link from 'next/link'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface SidebarProps {
   habits: Habit[]
@@ -27,7 +28,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   scrollToToday
 }, ref) => {
   const { theme, toggleTheme } = useTheme()
-  const { data: session } = useSession();
+  const { data: session } = useSession()
 
   return (
     <div 
@@ -57,35 +58,54 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
         ))}
       </div>
       <div className="p-4 space-y-2 transition-all duration-300">
-      <Button
-          variant="ghost"
-          size="icon"
-          className="w-full flex justify-center hover:bg-secondary transition-colors duration-300"
-          title="User"
-        >
-          {session?.user?.image ? 
-           <Image 
-           src={session?.user?.image || ''} 
-           alt={'user'}
-           className='w-5 h-5 rounded-full object-cover'
-           width={40}
-           height={40}
-           quality={100}
-         />
-         :
-         <CircleUserRound width={20} height={20} />
-}
-          {!isSidebarCollapsed && (
-            <span className="ml-2 text-foreground transition-colors duration-300">
-              {session?.user?.name}
-            </span>
-          )}
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-full flex justify-center items-center hover:bg-secondary transition-colors duration-300"
+              title="User"
+            >
+              {session?.user?.image ? 
+                <Image 
+                  src={session.user.image} 
+                  alt="User"
+                  className="w-5 h-5 rounded-full object-cover"
+                  width={40}
+                  height={40}
+                  quality={100}
+                />
+                :
+                <CircleUserRound width={20} height={20} />
+              }
+              {!isSidebarCollapsed && (
+                <span className="ml-2 text-foreground transition-colors duration-300">
+                  {session?.user?.name}
+                </span>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            className="bg-popover text-popover-foreground"
+            side={isSidebarCollapsed ? "right" : "top"}
+          >
+            <DropdownMenuItem asChild>
+              <Link href="/profile" className="flex items-center text-foreground transition-colors duration-300">
+                <User className="w-4 h-4 mr-2 text-muted-foreground transition-colors duration-300" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => signOut()} className="text-foreground transition-colors duration-300">
+              <LogOut className="w-4 h-4 mr-2 text-muted-foreground transition-colors duration-300" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           variant="ghost"
           size="icon"
           onClick={scrollToToday}
-          className="w-full flex justify-center hover:bg-secondary transition-colors duration-300"
+          className="w-full flex justify-center items-center hover:bg-secondary transition-colors duration-300"
           title="Scroll to Today"
         >
           <Calendar className="h-5 w-5 text-foreground transition-colors duration-300" />
@@ -99,7 +119,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
-          className="w-full flex justify-center hover:bg-secondary transition-colors duration-300"
+          className="w-full flex justify-center items-center hover:bg-secondary transition-colors duration-300"
         >
           {theme === 'light' ? (
             <Moon className="h-5 w-5 text-foreground transition-colors duration-300" />
