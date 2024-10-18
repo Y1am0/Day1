@@ -5,6 +5,9 @@ import HabitListItem from './HabitListItem'
 import { Habit } from '@/../types'
 import { useTheme } from './ThemeContext'
 import LogoIcon from '@/app/icons/logo'
+import { useSession } from "next-auth/react";
+import Image from 'next/image'
+
 
 interface SidebarProps {
   habits: Habit[]
@@ -24,6 +27,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   scrollToToday
 }, ref) => {
   const { theme, toggleTheme } = useTheme()
+  const { data: session } = useSession();
 
   return (
     <div 
@@ -53,6 +57,26 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
         ))}
       </div>
       <div className="p-4 space-y-2 transition-all duration-300">
+      <Button
+          variant="ghost"
+          size="icon"
+          className="w-full flex justify-center hover:bg-secondary transition-colors duration-300"
+          title="User"
+        >
+          <Image 
+            src={session?.user?.image || ''} 
+            alt={'user'}
+            className='w-5 h-5 rounded-full object-cover'
+            width={40}
+            height={40}
+            quality={100}
+          />
+          {!isSidebarCollapsed && (
+            <span className="ml-2 text-foreground transition-colors duration-300">
+              {session?.user?.name}
+            </span>
+          )}
+        </Button>
         <Button
           variant="ghost"
           size="icon"
