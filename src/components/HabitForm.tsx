@@ -48,7 +48,7 @@ export default function HabitForm({
     color: initialHabit?.color || Object.values(COLORS)[0],
     icon: initialHabit?.icon || "FaDumbbell",
     habitType: initialHabit ? "custom" : "suggested",
-  });
+  });  
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isIconSearchOpen, setIsIconSearchOpen] = useState(false);
@@ -60,9 +60,8 @@ export default function HabitForm({
       // Show an error message or prevent form submission
       return;
     }
-    const { ...habitData } = state;
-    onSubmit(habitData);
-    onClose();
+    onSubmit({ ...state });
+    onClose(); // Close form after submission
   };
 
   const filteredIcons = Object.keys(FaIcons).filter((name) =>

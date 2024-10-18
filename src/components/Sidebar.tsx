@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react'
-import { Menu, Calendar, Sun, Moon } from 'lucide-react'
+import { Menu, Calendar, Sun, Moon, CircleUserRound } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import HabitListItem from './HabitListItem'
 import { Habit } from '@/types'
@@ -34,7 +34,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
       ref={ref}
       className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} h-full flex-shrink-0 border-r border-border bg-background text-foreground transition-all duration-300 flex flex-col`}
     >
-      <div className="flex items-center justify-between py-8 px-4 bg-background transition-all duration-300">
+      <div className="flex items-center justify-between h-[100px] px-4 bg-background transition-all duration-300">
         {!isSidebarCollapsed && (
           <div className="flex items-center space-x-4 transition-all duration-300">
             <LogoIcon className="text-foreground transition-colors duration-300" />
@@ -63,14 +63,18 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
           className="w-full flex justify-center hover:bg-secondary transition-colors duration-300"
           title="User"
         >
-          <Image 
-            src={session?.user?.image || ''} 
-            alt={'user'}
-            className='w-5 h-5 rounded-full object-cover'
-            width={40}
-            height={40}
-            quality={100}
-          />
+          {session?.user?.image ? 
+           <Image 
+           src={session?.user?.image || ''} 
+           alt={'user'}
+           className='w-5 h-5 rounded-full object-cover'
+           width={40}
+           height={40}
+           quality={100}
+         />
+         :
+         <CircleUserRound width={20} height={20} />
+}
           {!isSidebarCollapsed && (
             <span className="ml-2 text-foreground transition-colors duration-300">
               {session?.user?.name}

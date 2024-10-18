@@ -1,15 +1,15 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react'
-import { format } from 'date-fns'
-import { Loader2 } from 'lucide-react'
-import CalendarDay from './CalendarDay'
-import { Habit, HabitStatus } from '@/types'
+import React, { useRef, useEffect, useCallback, useState } from 'react';
+import { format } from 'date-fns';
+import { Loader2 } from 'lucide-react';
+import CalendarDay from './CalendarDay';
+import { Habit, HabitStatus } from '@/types';
 
 interface CalendarProps {
-  dates: Date[]
-  habits: Habit[]
-  habitStatus: HabitStatus
-  toggleStatus: (habitId: string, date: string) => void
-  loadMoreDates: () => Promise<void> | void
+  dates: Date[];
+  habits: Habit[];
+  habitStatus: HabitStatus;
+  toggleStatus: (habitId: string, date: string) => void;
+  loadMoreDates: () => Promise<void> | void;
 }
 
 export default function Calendar({
@@ -19,11 +19,11 @@ export default function Calendar({
   toggleStatus,
   loadMoreDates
 }: CalendarProps) {
-  const calendarRef = useRef<HTMLDivElement>(null)
-  const loadingRef = useRef<HTMLDivElement>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [initialLoad, setInitialLoad] = useState(true)
-  const prevDatesLengthRef = useRef(dates.length)
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const prevDatesLengthRef = useRef(dates.length);
 
   const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
     const [entry] = entries;
@@ -89,5 +89,5 @@ export default function Calendar({
         ))}
       </div>
     </div>
-  )
+  );
 }
