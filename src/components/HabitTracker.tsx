@@ -1,154 +1,160 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { format } from 'date-fns'
-import { Plus } from 'lucide-react'
-import Sidebar from './Sidebar'
-import Calendar from './Calendar'
-import EditHabitDialog from '@/components/EditHabitDialog'
-import AddHabitDialog from '@/components/AddHabitDialog'
-import FloatingMessage from '@/components/FloatingMessage'
-import { Button } from "@/components/ui/button"
-import { Habit, HabitStatus } from '@/../types'
-import {
-  
-  useMediaQuery,
-  useDates,
-  loadSavedHabits,
-  loadSavedHabitStatus,
-  saveHabitsToLocalStorage,
-  saveHabitStatusToLocalStorage,
-} from '@/lib/habitUtils'
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { format } from 'date-fns';
+import { Plus } from 'lucide-react';
+import Sidebar from './Sidebar';
+import Calendar from './Calendar';
+import EditHabitDialog from '@/components/EditHabitDialog';
+import AddHabitDialog from '@/components/AddHabitDialog';
+import FloatingMessage from '@/components/FloatingMessage';
+import { Button } from "@/components/ui/button";
+import { Habit, HabitStatus } from '@/types';
+import { useMediaQuery, useDates } from '@/lib/habitUtils';
+import { fetchHabits, addHabit, editHabit, removeHabit, fetchHabitStatuses, toggleHabitStatus } from '@/actions'; // Updated server actions
 
-export default function HabitTracker() {
-  const [habits, setHabits] = useState<Habit[]>([])
-  const [habitStatus, setHabitStatus] = useState<HabitStatus>(new Map())
-  const { dates, loadMoreDates: originalLoadMoreDates } = useDates()
-  const [isAddHabitOpen, setIsAddHabitOpen] = useState(false)
-  const [isEditHabitOpen, setIsEditHabitOpen] = useState(false)
-  const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
-  const isDesktop = useMediaQuery("(min-width: 768px)")
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(!isDesktop)
-  const [floatingMessage, setFloatingMessage] = useState<{ message: string; position: { top: number } } | null>(null)
-  const sidebarRef = useRef<HTMLDivElement>(null)
+type HabitTrackerProps = {
+  user: { id: string };
+};
 
+export default function HabitTracker({ user }: HabitTrackerProps) {
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [habitStatus, setHabitStatusState] = useState<HabitStatus>(new Map());
+  const { dates, loadMoreDates } = useDates();
+  const [isAddHabitOpen, setIsAddHabitOpen] = useState(false);
+  const [isEditHabitOpen, setIsEditHabitOpen] = useState(false);
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(!isDesktop);
+  const [floatingMessage, setFloatingMessage] = useState<{ message: string; position: { top: number } } | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // Fetch habits when the component mounts
   useEffect(() => {
-    setIsSidebarCollapsed(!isDesktop)
-  }, [isDesktop])
+    const loadHabits = async () => {
+      const userHabits = await fetchHabits(user.id);
+      setHabits(userHabits);
+    };
 
-  useEffect(() => {
-    setHabits(loadSavedHabits())
-    setHabitStatus(loadSavedHabitStatus())
-  }, [])
+    loadHabits();
+  }, [user.id]);
 
+  // Fetch habit statuses when dates change
   useEffect(() => {
-    if (habits.length > 0) {
-      saveHabitsToLocalStorage(habits)
+    const loadHabitStatuses = async () => {
+      if (habits.length > 0) {
+        const habitIds = habits.map(habit => habit.id);
+        const startDate = dates[0].toISOString();
+        const endDate = dates[dates.length - 1].toISOString();
+
+        const statuses = await fetchHabitStatuses(habitIds, startDate, endDate);
+        const statusMap = new Map<string, Map<string, 'done' | 'planned' | 'skipped'>>();
+        statuses.forEach(status => {
+          const date = status.date.toISOString().split('T')[0];
+          if (!statusMap.has(date)) {
+            statusMap.set(date, new Map());
+          }
+          statusMap.get(date)?.set(status.habitId, status.status);
+        });
+        setHabitStatusState(statusMap);
+      }
+    };
+
+    loadHabitStatuses();
+  }, [habits, dates]);
+
+  // Add habit
+  const handleAddHabit = async (habit: Omit<Habit, 'id'>) => {
+    const newHabit = await addHabit({ ...habit, userId: user.id });
+    setHabits((prevHabits) => [...prevHabits, newHabit]);
+    setIsAddHabitOpen(false);
+
+    // Show floating message when a habit is added
+    if (isSidebarCollapsed && sidebarRef.current) {
+      const newHabitIndex = habits.length;
+      const habitHeight = 40; // Approximate height of a habit item
+      const topOffset = 100; // Height of the sidebar header
+      const position = { top: topOffset + newHabitIndex * habitHeight };
+      setFloatingMessage({ message: `Added habit: ${newHabit.name}`, position });
     }
-  }, [habits])
-
-  useEffect(() => {
-    if (habitStatus.size > 0) {
-      saveHabitStatusToLocalStorage(habitStatus)
-    }
-  }, [habitStatus])
-
-  const loadMoreDates = useCallback(async () => {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        originalLoadMoreDates();
-        resolve();
-      }, 1000);
-    });
-  }, [originalLoadMoreDates]);
-
-  const toggleStatus = (habitId: string, date: string) => {
-    setHabitStatus(prev => {
-      const newHabitStatus = new Map(prev);
-      const dateStatus = new Map(newHabitStatus.get(date) || new Map());
-      const currentStatus = dateStatus.get(habitId) || 'skipped';
-      const nextStatus = currentStatus === 'skipped' ? 'done' :
-                         currentStatus === 'done' ? 'planned' : 'skipped';
-      dateStatus.set(habitId, nextStatus);
-      newHabitStatus.set(date, dateStatus);
-      return newHabitStatus;
-    });
   };
 
-  const addHabit = (habit: Omit<Habit, 'id'>) => {
-    const newHabit = { ...habit, id: Date.now().toString() }
-    setHabits(prevHabits => {
-      const updatedHabits = [...prevHabits, newHabit]
-      if (isSidebarCollapsed) {
-        const newHabitIndex = updatedHabits.length - 1
-        const habitHeight = 40 // Approximate height of a habit item
-        const topOffset = 100 // Height of the sidebar header
-        const position = {
-          top: topOffset + newHabitIndex * habitHeight
-        }
-        setFloatingMessage({
-          message: `Added habit: ${newHabit.name}`,
-          position
-        })
-      }
-      return updatedHabits
-    })
-    setIsAddHabitOpen(false)
-  }
+  // Trigger edit habit modal
+  const openEditHabitDialog = (habit: Habit) => {
+    setEditingHabit(habit);
+    setIsEditHabitOpen(true);
+  };
 
-  const editHabit = (updatedHabit: Habit) => {
-    setHabits(prevHabits => prevHabits.map(h => h.id === updatedHabit.id ? updatedHabit : h))
-    setIsEditHabitOpen(false)
-    setEditingHabit(null)
-  }
+  // Submit habit edit
+  const handleEditHabit = async (updatedHabit: Habit) => {
+    await editHabit(updatedHabit);
+    setHabits((prevHabits) => prevHabits.map(h => h.id === updatedHabit.id ? updatedHabit : h));
+    setIsEditHabitOpen(false);
+    setEditingHabit(null);
+  };
 
-  const deleteHabit = (id: string) => {
-    setHabits(prevHabits => {
-      const updatedHabits = prevHabits.filter(h => h.id !== id)
-      saveHabitsToLocalStorage(updatedHabits)
-      return updatedHabits
-    })
-  
-    setHabitStatus(prev => {
-      const newStatus = new Map(prev)
-      Array.from(newStatus.entries()).forEach(([date, statuses]) => {
-        statuses.delete(id)
-        if (statuses.size === 0) {
-          newStatus.delete(date)
-        }
-      })
-      return newStatus
-    })
-  }
+  // Delete habit
+  const handleRemoveHabit = async (id: string) => {
+    await removeHabit(id);
+    setHabits((prevHabits) => prevHabits.filter(h => h.id !== id));
+  };
 
+// Toggle habit status
+const handleToggleStatus = async (habitId: string, date: string) => {
+  const currentStatus = habitStatus.get(date)?.get(habitId) || 'skipped';
+  const nextStatus = currentStatus === 'skipped' ? 'done' : currentStatus === 'done' ? 'planned' : 'skipped';
+
+  // Use the server-side action to handle database sync (including deletion)
+  await toggleHabitStatus(habitId, date, nextStatus);
+
+  // Update the local state to reflect the new status
+  setHabitStatusState(prev => {
+    const newStatus = new Map(prev);
+    const dateStatus = newStatus.get(date) || new Map();
+
+    if (nextStatus === 'skipped') {
+      // Delete the 'skipped' status from the local state
+      dateStatus.delete(habitId);
+    } else {
+      // Set the status for 'done' or 'planned'
+      dateStatus.set(habitId, nextStatus);
+    }
+
+    newStatus.set(date, dateStatus);
+    return newStatus;
+  });
+};
+
+
+  // Scroll to today's date
   const scrollToToday = () => {
-    const todayElement = document.querySelector(`[data-date="${format(new Date(), 'yyyy-MM-dd')}"]`)
-    todayElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-  }
+    const todayElement = document.querySelector(`[data-date="${format(new Date(), 'yyyy-MM-dd')}"]`);
+    todayElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  };
 
+  // Scroll to today on load
   useEffect(() => {
-    scrollToToday()
-  }, [])
+    scrollToToday();
+  }, []);
 
+  // Update floating message position when habits or sidebar state change
   const updateFloatingMessagePosition = useCallback(() => {
     if (floatingMessage) {
-      const habitIndex = habits.findIndex(h => h.name === floatingMessage.message.replace('Added habit: ', ''))
+      const habitIndex = habits.findIndex(h => h.name === floatingMessage.message.replace('Added habit: ', ''));
       if (habitIndex !== -1) {
-        const habitHeight = 40 // Approximate height of a habit item
-        const topOffset = 100 // Height of the sidebar header
-        const newPosition = {
-          top: topOffset + habitIndex * habitHeight
-        }
+        const habitHeight = 100; // Approximate height of a habit item
+        const topOffset = 100; // Height of the sidebar header
+        const newPosition = { top: topOffset + habitIndex * habitHeight };
         if (newPosition.top !== floatingMessage.position.top) {
-          setFloatingMessage(prev => prev ? { ...prev, position: newPosition } : null)
+          setFloatingMessage(prev => prev ? { ...prev, position: newPosition } : null);
         }
       }
     }
-  }, [habits, floatingMessage])
+  }, [habits, floatingMessage]);
 
   useEffect(() => {
-    updateFloatingMessagePosition()
-  }, [isSidebarCollapsed, updateFloatingMessagePosition])
+    updateFloatingMessagePosition();
+  }, [isSidebarCollapsed, updateFloatingMessagePosition]);
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground transition-colors duration-300">
@@ -158,18 +164,15 @@ export default function HabitTracker() {
           habits={habits}
           isSidebarCollapsed={isSidebarCollapsed}
           setIsSidebarCollapsed={setIsSidebarCollapsed}
-          onEditHabit={(habit) => {
-            setEditingHabit(habit)
-            setIsEditHabitOpen(true)
-          }}
-          onDeleteHabit={deleteHabit}
-          scrollToToday={scrollToToday}
+          onEditHabit={openEditHabitDialog} // Update to open the edit modal
+          onDeleteHabit={handleRemoveHabit}
+          scrollToToday={scrollToToday} // Pass scrollToToday to Sidebar
         />
         <Calendar
           dates={dates}
           habits={habits}
           habitStatus={habitStatus}
-          toggleStatus={toggleStatus}
+          toggleStatus={handleToggleStatus}
           loadMoreDates={loadMoreDates}
         />
       </div>
@@ -179,19 +182,25 @@ export default function HabitTracker() {
       >
         <Plus className="w-full" />
       </Button>
-      <EditHabitDialog
-        isOpen={isEditHabitOpen}
-        onOpenChange={setIsEditHabitOpen}
-        onSubmit={editHabit}
-        editingHabit={editingHabit}
-        isDesktop={isDesktop}
-      />
+
+      {/* Add Habit Dialog */}
       <AddHabitDialog
         isOpen={isAddHabitOpen}
         onOpenChange={setIsAddHabitOpen}
-        onSubmit={addHabit}
+        onSubmit={handleAddHabit}
         isDesktop={isDesktop}
       />
+
+      {/* Edit Habit Dialog */}
+      <EditHabitDialog
+        isOpen={isEditHabitOpen}
+        onOpenChange={setIsEditHabitOpen}
+        onSubmit={handleEditHabit} // Call the correct submission handler
+        editingHabit={editingHabit}
+        isDesktop={isDesktop}
+      />
+
+      {/* Floating message when a habit is added */}
       {floatingMessage && (
         <FloatingMessage
           message={floatingMessage.message}
@@ -200,5 +209,5 @@ export default function HabitTracker() {
         />
       )}
     </div>
-  )
+  );
 }

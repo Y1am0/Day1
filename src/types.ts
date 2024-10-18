@@ -8,6 +8,13 @@ export type Habit = {
 
 export type HabitStatus = Map<string, Map<string, 'done' | 'planned' | 'skipped'>>;
 
+export interface User {
+  id: string;     // User's unique ID
+  name: string;   // User's display name
+  email: string;  // User's email address
+  image?: string; // Optional: User's profile picture URL
+}
+
 export type FormState = Omit<Habit, 'id'> & { habitType: 'suggested' | 'custom' };
 
 export type FormAction =

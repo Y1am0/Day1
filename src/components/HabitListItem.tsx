@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import * as FaIcons from 'react-icons/fa6';
 import { IconType } from 'react-icons';
-import { HabitListItemProps, IconRendererProps } from '@/../types';
+import { HabitListItemProps, IconRendererProps } from '@/types';
 import { DIFFICULTY_COLORS, COLOR_HEX_MAP } from '@/app/constants';
 
 const IconRenderer: React.FC<IconRendererProps> = ({ iconName, color }) => {

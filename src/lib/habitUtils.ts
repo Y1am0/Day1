@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { subDays } from 'date-fns'
-import { Habit, HabitStatus } from '@/../types'
+import { Habit, HabitStatus } from '@/types'
 
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false)

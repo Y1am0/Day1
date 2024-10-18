@@ -15,7 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as FaIcons from "react-icons/fa6";
 import { IconType } from "react-icons";
-import { HabitFormProps, FormState, FormAction } from "@/../types";
+import { HabitFormProps, FormState, FormAction } from "@/types";
 import { COLORS, SUGGESTED_HABITS } from "@/app/constants";
 
 function habitFormReducer(state: FormState, action: FormAction): FormState {
@@ -48,7 +48,7 @@ export default function HabitForm({
     color: initialHabit?.color || Object.values(COLORS)[0],
     icon: initialHabit?.icon || "FaDumbbell",
     habitType: initialHabit ? "custom" : "suggested",
-  });
+  });  
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isIconSearchOpen, setIsIconSearchOpen] = useState(false);
@@ -60,9 +60,8 @@ export default function HabitForm({
       // Show an error message or prevent form submission
       return;
     }
-    const { ...habitData } = state;
-    onSubmit(habitData);
-    onClose();
+    onSubmit({ ...state });
+    onClose(); // Close form after submission
   };
 
   const filteredIcons = Object.keys(FaIcons).filter((name) =>
