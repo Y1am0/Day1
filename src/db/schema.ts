@@ -5,6 +5,7 @@ import {
     text,
     primaryKey,
     integer,
+    pgEnum,
   } from "drizzle-orm/pg-core"
   import postgres from "postgres"
   import { drizzle } from "drizzle-orm/postgres-js"
@@ -15,6 +16,8 @@ import {
    
   export const db = drizzle(pool)
    
+  export const userRoleEnum = pgEnum("userRole", ["FREE", "PAID"]);
+
   export const users = pgTable("user", {
     id: text("id")
       .primaryKey()
@@ -23,6 +26,7 @@ import {
     email: text("email").unique(),
     emailVerified: timestamp("emailVerified", { mode: "date" }),
     image: text("image"),
+    role: userRoleEnum("role").default("FREE"),
   })
    
   export const accounts = pgTable(

@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react'
 import { Menu, Calendar, Sun, Moon } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import HabitListItem from './HabitListItem'
-import { Habit } from '@/../types'
+import { Habit } from '@/types'
 import { useTheme } from './ThemeContext'
 import LogoIcon from '@/app/icons/logo'
 import { useSession } from "next-auth/react";
@@ -32,9 +32,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   return (
     <div 
       ref={ref}
-      className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} flex-shrink-0 overflow-y-auto border-r border-border bg-background text-foreground transition-all duration-300 flex flex-col`}
+      className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} h-full flex-shrink-0 border-r border-border bg-background text-foreground transition-all duration-300 flex flex-col`}
     >
-      <div className="flex items-center justify-between h-[100px] px-4 bg-background transition-all duration-300">
+      <div className="flex items-center justify-between py-8 px-4 bg-background transition-all duration-300">
         {!isSidebarCollapsed && (
           <div className="flex items-center space-x-4 transition-all duration-300">
             <LogoIcon className="text-foreground transition-colors duration-300" />
@@ -45,7 +45,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
           <Menu className="w-full h-auto text-foreground transition-colors duration-300" />
         </Button>
       </div>
-      <div className="flex-grow transition-all duration-300">
+      <div className="flex-grow transition-all duration-300 overflow-y-auto">
         {habits.map(habit => (
           <HabitListItem
             key={habit.id}

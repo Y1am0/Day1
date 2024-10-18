@@ -15,7 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as FaIcons from "react-icons/fa6";
 import { IconType } from "react-icons";
-import { HabitFormProps, FormState, FormAction } from "@/../types";
+import { HabitFormProps, FormState, FormAction } from "@/types";
 import { COLORS, SUGGESTED_HABITS } from "@/app/constants";
 
 function habitFormReducer(state: FormState, action: FormAction): FormState {

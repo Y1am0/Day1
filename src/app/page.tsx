@@ -8,6 +8,7 @@ const Page = async () => {
   if (!session?.user) {
     return redirect("/api/auth/signin");
   }
+  console.log(session)
   return <HabitTracker />;
 };
 

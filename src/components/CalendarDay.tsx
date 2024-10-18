@@ -1,7 +1,7 @@
 import React from 'react';
 import { format, isSameDay } from 'date-fns';
 import * as FaIcons from 'react-icons/fa6';
-import { CalendarDayProps } from '@/../types';
+import { CalendarDayProps } from '@/types';
 
 export default function CalendarDay({ date, habits, habitStatus, toggleStatus }: CalendarDayProps) {
   const formattedDate = format(date, 'yyyy-MM-dd');

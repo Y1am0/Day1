@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback, useState } from 'react'
 import { format } from 'date-fns'
 import { Loader2 } from 'lucide-react'
 import CalendarDay from './CalendarDay'
-import { Habit, HabitStatus } from '@/../types'
+import { Habit, HabitStatus } from '@/types'
 
 interface CalendarProps {
   dates: Date[]
@@ -63,7 +63,7 @@ export default function Calendar({
   }, [dates, initialLoad]);
 
   return (
-    <div className="flex-1 overflow-x-auto bg-background" ref={calendarRef}>
+    <div className="flex-1 overflow-x-scroll bg-background" ref={calendarRef}>
       <div className="flex" style={{ width: `${(dates.length + 1) * 100}px` }}>
         <div className="w-[100px] flex-shrink-0" ref={loadingRef}>
           <div className="h-[100px] border-r border-border transition-colors duration-300 flex items-center justify-center">

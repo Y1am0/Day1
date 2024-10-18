@@ -9,7 +9,7 @@ import EditHabitDialog from '@/components/EditHabitDialog'
 import AddHabitDialog from '@/components/AddHabitDialog'
 import FloatingMessage from '@/components/FloatingMessage'
 import { Button } from "@/components/ui/button"
-import { Habit, HabitStatus } from '@/../types'
+import { Habit, HabitStatus } from '@/types'
 import {
   
   useMediaQuery,
