@@ -46,7 +46,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
           <Menu className="w-full h-auto text-foreground transition-colors duration-300" />
         </Button>
       </div>
-      <div className="flex-grow transition-all duration-300 overflow-y-auto">
+      <div className="flex-grow transition-all duration-300 overflow-y-auto overflow-x-hidden">
         {habits.map(habit => (
           <HabitListItem
             key={habit.id}

@@ -1,13 +1,18 @@
 import { db } from "@/db";
 import { habits } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { Habit } from '@/types';
 
 
 // Fetch all habits for a user
 export const getUserHabits = async (userId: string) => {
-  return await db.select().from(habits).where(eq(habits.userId, userId));
+  return await db
+    .select()
+    .from(habits)
+    .where(eq(habits.userId, userId))
+    .orderBy(asc(habits.createdAt));
 };
+
 
 // Insert a new habit
 export const insertHabit = async (habit: Omit<Habit, 'id'> & { userId: string }) => {
