@@ -29,7 +29,7 @@ export default function HabitListItem({ habit, onEdit, onDelete, isCollapsed }: 
           {renderIcon({ iconName: habit.icon, color: habit.color })}
         </span>
         {!isCollapsed && (
-          <span className="flex-1 truncate text-foreground transition-colors duration-300">
+          <span className="flex-1 w-36 text-foreground transition-colors duration-300">
             {habit.name}
           </span>
         )}
