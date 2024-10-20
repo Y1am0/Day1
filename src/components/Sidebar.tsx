@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react'
-import { Menu, Calendar, Sun, Moon, CircleUserRound, LogOut, User } from 'lucide-react'
+import { Menu, Sun, Moon, CircleUserRound, LogOut, User, CalendarArrowDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import HabitListItem from './HabitListItem'
 import { Habit } from '@/types'
@@ -108,7 +108,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
           className="w-full flex justify-center items-center hover:bg-secondary transition-colors duration-300"
           title="Scroll to Today"
         >
-          <Calendar className="h-5 w-5 text-foreground transition-colors duration-300" />
+          <CalendarArrowDown className="h-5 w-5 text-foreground transition-colors duration-300" />
           {!isSidebarCollapsed && (
             <span className="ml-2 text-foreground transition-colors duration-300">
               Today

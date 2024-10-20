@@ -1,6 +1,6 @@
 import React from 'react';
 import { format, isSameDay } from 'date-fns';
-import * as FaIcons from 'react-icons/fa6';
+import { Hourglass, Check } from "lucide-react";
 import { CalendarDayProps } from '@/types';
 
 export default function CalendarDay({ date, habits, habitStatus, toggleStatus }: CalendarDayProps) {
@@ -21,14 +21,14 @@ export default function CalendarDay({ date, habits, habitStatus, toggleStatus }:
             key={`${habit.id}-${formattedDate}`}
             className={`h-[100px] border-b border-border flex items-center justify-center cursor-pointer transition-all duration-300 ease-in-out ${
               status === 'done' ? habit.color :
-              status === 'planned' ? `${habit.color} bg-opacity-50` :
-              'bg-muted'
+              status === 'planned' ? `${habit.color} bg-opacity-10` :
+              'bg-muted/50'
             }`}
             onClick={() => toggleStatus(habit.id, formattedDate)}
             title={`Click to toggle status`} 
           >
-            {status === 'done' && <FaIcons.FaCheck className="w-8 h-8 text-background transition-colors duration-300 ease-in-out" />}
-            {status === 'planned' && <FaIcons.FaClock className="w-8 h-8 text-background transition-colors duration-300 ease-in-out" />}
+            {status === 'done' && <Check className="w-8 h-8 text-white transition-colors duration-300 ease-in-out" />}
+            {status === 'planned' && <Hourglass className="size-5 text-muted-foreground dark:text-foreground transition-colors duration-300 ease-in-out" />}
           </div>
         );
       })}

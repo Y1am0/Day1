@@ -64,6 +64,8 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
 
         const statuses = await fetchHabitStatuses(habitIds, startDate, endDate);
         const statusMap = new Map<string, Map<string, 'done' | 'planned' | 'skipped'>>();
+        
+        // Process fetched statuses
         statuses.forEach(status => {
           const date = status.date.toISOString().split('T')[0];
           if (!statusMap.has(date)) {
@@ -71,6 +73,24 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
           }
           statusMap.get(date)?.set(status.habitId, status.status);
         });
+
+        habits.forEach(habit => {
+          dates.forEach(date => {
+            const dayOfWeek = format(date, 'EEE');
+            const dateStr = date.toISOString().split('T')[0];
+            const habitStatuses = statusMap.get(dateStr) || new Map();
+            
+            if (!habitStatuses.has(habit.id)) {
+              if (habit.frequency.length > 0 && !habit.frequency.includes(dayOfWeek)) {
+                // If frequency is not empty and the day is not in the frequency, set as 'planned'
+                habitStatuses.set(habit.id, 'planned');
+              }
+              // If frequency is empty (everyday) or the day is in the frequency, we don't set any status
+              statusMap.set(dateStr, habitStatuses);
+            }
+          });
+        });
+
         setHabitStatusState(statusMap);
       }
     };
@@ -114,48 +134,47 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
     setHabits((prevHabits) => prevHabits.filter(h => h.id !== id));
   };
 
-// Toggle habit status with optimistic update
-const handleToggleStatus = async (habitId: string, date: string) => {
-  const currentStatus = habitStatus.get(date)?.get(habitId) || 'skipped';
-  const nextStatus = currentStatus === 'skipped' ? 'done' : currentStatus === 'done' ? 'planned' : 'skipped';
+  // Toggle habit status with optimistic update
+  const handleToggleStatus = async (habitId: string, date: string) => {
+    const currentStatus = habitStatus.get(date)?.get(habitId) || 'skipped';
+    const nextStatus = currentStatus === 'skipped' ? 'done' : currentStatus === 'done' ? 'planned' : 'skipped';
 
-  // Optimistic update before the server-side action
-  setOptimisticStatus([habitId, date, nextStatus]);
+    // Optimistic update before the server-side action
+    setOptimisticStatus([habitId, date, nextStatus]);
 
-  try {
-    // Perform the server-side action to handle database sync
-    await toggleHabitStatus(habitId, date, nextStatus);
+    try {
+      // Perform the server-side action to handle database sync
+      await toggleHabitStatus(habitId, date, nextStatus);
 
-    // After successful server action, ensure the UI state matches the server
-    setHabitStatusState(prev => {
-      const newStatus = new Map(prev);
-      const dateStatus = newStatus.get(date) || new Map();
-      if (nextStatus === 'skipped') {
-        dateStatus.delete(habitId);
-      } else {
-        dateStatus.set(habitId, nextStatus);
-      }
-      newStatus.set(date, dateStatus);
-      return newStatus;
-    });
-  } catch (error) {
-    console.error('Failed to toggle status:', error);
+      // After successful server action, ensure the UI state matches the server
+      setHabitStatusState(prev => {
+        const newStatus = new Map(prev);
+        const dateStatus = newStatus.get(date) || new Map();
+        if (nextStatus === 'skipped') {
+          dateStatus.delete(habitId);
+        } else {
+          dateStatus.set(habitId, nextStatus);
+        }
+        newStatus.set(date, dateStatus);
+        return newStatus;
+      });
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
 
-    // If the server action fails, revert the optimistic update
-    setHabitStatusState(prev => {
-      const newStatus = new Map(prev);
-      const dateStatus = newStatus.get(date) || new Map();
-      if (currentStatus === 'skipped') {
-        dateStatus.delete(habitId);
-      } else {
-        dateStatus.set(habitId, currentStatus);
-      }
-      newStatus.set(date, dateStatus);
-      return newStatus;
-    });
-  }
-};
-
+      // If the server action fails, revert the optimistic update
+      setHabitStatusState(prev => {
+        const newStatus = new Map(prev);
+        const dateStatus = newStatus.get(date) || new Map();
+        if (currentStatus === 'skipped') {
+          dateStatus.delete(habitId);
+        } else {
+          dateStatus.set(habitId, currentStatus);
+        }
+        newStatus.set(date, dateStatus);
+        return newStatus;
+      });
+    }
+  };
 
   // Scroll to today's date
   const scrollToToday = () => {
@@ -195,14 +214,14 @@ const handleToggleStatus = async (habitId: string, date: string) => {
           habits={habits}
           isSidebarCollapsed={isSidebarCollapsed}
           setIsSidebarCollapsed={setIsSidebarCollapsed}
-          onEditHabit={openEditHabitDialog} // Update to open the edit modal
+          onEditHabit={openEditHabitDialog}
           onDeleteHabit={handleRemoveHabit}
-          scrollToToday={scrollToToday} // Pass scrollToToday to Sidebar
+          scrollToToday={scrollToToday}
         />
         <Calendar
           dates={dates}
           habits={habits}
-          habitStatus={optimisticStatus} // Use optimistic status for the calendar
+          habitStatus={optimisticStatus}
           toggleStatus={handleToggleStatus}
           loadMoreDates={loadMoreDates}
         />
@@ -214,7 +233,6 @@ const handleToggleStatus = async (habitId: string, date: string) => {
         <Plus className="w-full" />
       </Button>
 
-      {/* Add Habit Dialog */}
       <AddHabitDialog
         isOpen={isAddHabitOpen}
         onOpenChange={setIsAddHabitOpen}
@@ -222,16 +240,14 @@ const handleToggleStatus = async (habitId: string, date: string) => {
         isDesktop={isDesktop}
       />
 
-      {/* Edit Habit Dialog */}
       <EditHabitDialog
         isOpen={isEditHabitOpen}
         onOpenChange={setIsEditHabitOpen}
-        onSubmit={handleEditHabit} // Call the correct submission handler
+        onSubmit={handleEditHabit}
         editingHabit={editingHabit}
         isDesktop={isDesktop}
       />
 
-      {/* Floating message when a habit is added */}
       {floatingMessage && (
         <FloatingMessage
           message={floatingMessage.message}
