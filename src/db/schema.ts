@@ -110,6 +110,7 @@ export const habits = pgTable("habits", {
   difficulty: difficultyEnum("difficulty").notNull(), // Enum for difficulty (Easy, Medium, Hard)
   color: text("color").notNull(), // Color string
   icon: text("icon").notNull(), // Icon identifier (e.g., FaDumbbell)
+  frequency: text("frequency").array().notNull().default([]),
   createdAt: timestamp("createdAt").defaultNow(), // Creation date
 });
 

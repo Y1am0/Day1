@@ -11,12 +11,22 @@ export async function fetchHabits(userId: string): Promise<Habit[]> {
 
 // Add a new habit
 export async function addHabit(habit: Omit<Habit, 'id'> & { userId: string }) {
-  return await insertHabit(habit);
+  // Ensure frequency is an array
+  const habitWithFrequency = {
+    ...habit,
+    frequency: Array.isArray(habit.frequency) ? habit.frequency : []
+  };
+  return await insertHabit(habitWithFrequency);
 }
 
 // Edit an existing habit
 export async function editHabit(updatedHabit: Habit) {
-  return await updateHabit(updatedHabit);
+  // Ensure frequency is an array
+  const habitWithFrequency = {
+    ...updatedHabit,
+    frequency: Array.isArray(updatedHabit.frequency) ? updatedHabit.frequency : []
+  };
+  return await updateHabit(habitWithFrequency);
 }
 
 // Delete a habit
@@ -31,11 +41,11 @@ export async function fetchHabitStatuses(habitIds: string[], startDate: string, 
 
 // Toggle habit status
 export async function toggleHabitStatus(habitId: string, date: string, status: 'skipped' | 'done' | 'planned') {
-    if (status === 'skipped') {
-      // If status is 'skipped', delete it from the database
-      await deleteHabitStatus(habitId, date);
-    } else {
-      // Otherwise, insert or update the status
-      await setHabitStatus(habitId, date, status);
-    }
+  if (status === 'skipped') {
+    // If status is 'skipped', delete it from the database
+    await deleteHabitStatus(habitId, date);
+  } else {
+    // Otherwise, insert or update the status
+    await setHabitStatus(habitId, date, status);
   }
+}

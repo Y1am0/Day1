@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useReducer, useState, useEffect } from "react";
 import { ChevronLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,8 @@ import { IconType } from "react-icons";
 import { HabitFormProps, FormState, FormAction } from "@/types";
 import { COLORS, SUGGESTED_HABITS } from "@/app/constants";
 
+const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
 function habitFormReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
     case "SET_NAME":
@@ -32,6 +34,13 @@ function habitFormReducer(state: FormState, action: FormAction): FormState {
       return { ...state, icon: action.payload };
     case "SET_HABIT_TYPE":
       return { ...state, habitType: action.payload };
+    case "SET_FREQUENCY":
+      return { ...state, frequency: action.payload };
+    case "TOGGLE_DAY":
+      const updatedDays = state.frequency.includes(action.payload)
+        ? state.frequency.filter(day => day !== action.payload)
+        : [...state.frequency, action.payload];
+      return { ...state, frequency: updatedDays };
     default:
       return state;
   }
@@ -48,30 +57,12 @@ export default function HabitForm({
     color: initialHabit?.color || Object.values(COLORS)[0],
     icon: initialHabit?.icon || "FaDumbbell",
     habitType: initialHabit ? "custom" : "suggested",
+    frequency: initialHabit?.frequency || [],
   });  
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isIconSearchOpen, setIsIconSearchOpen] = useState(false);
   const [isLoadingIcons, setIsLoadingIcons] = useState(true);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!state.name) {
-      // Show an error message or prevent form submission
-      return;
-    }
-    onSubmit({ ...state });
-    onClose(); // Close form after submission
-  };
-
-  const filteredIcons = Object.keys(FaIcons).filter((name) =>
-    name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const renderIcon = (iconName: string) => {
-    const IconComponent = FaIcons[iconName as keyof typeof FaIcons] as IconType;
-    return IconComponent ? <IconComponent className="w-5 h-5" /> : null;
-  };
 
   useEffect(() => {
     if (isIconSearchOpen) {
@@ -81,6 +72,29 @@ export default function HabitForm({
       });
     }
   }, [isIconSearchOpen]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!state.name) {
+      // Show an error message or prevent form submission
+      return;
+    }
+    onSubmit({ ...state });
+    onClose();
+  };
+
+  const handleFrequencyChange = (type: 'everyday' | 'custom') => {
+    dispatch({ type: "SET_FREQUENCY", payload: type === 'everyday' ? [] : state.frequency });
+  };
+
+  const toggleDay = (day: string) => {
+    dispatch({ type: "TOGGLE_DAY", payload: day });
+  };
+
+  const renderIcon = (iconName: string) => {
+    const IconComponent = FaIcons[iconName as keyof typeof FaIcons] as IconType;
+    return IconComponent ? <IconComponent className="w-5 h-5" /> : null;
+  };
 
   if (isIconSearchOpen) {
     return (
@@ -107,19 +121,21 @@ export default function HabitForm({
               ? Array.from({ length: 30 }).map((_, index) => (
                   <Skeleton key={index} className="h-10 w-10" />
                 ))
-              : filteredIcons.map((iconName) => (
-                  <Button
-                    key={iconName}
-                    variant="outline"
-                    className="h-10 w-10 p-0 flex items-center justify-center"
-                    onClick={() => {
-                      dispatch({ type: "SET_ICON", payload: iconName });
-                      setIsIconSearchOpen(false);
-                    }}
-                  >
-                    {renderIcon(iconName)}
-                  </Button>
-                ))}
+              : Object.keys(FaIcons)
+                  .filter(name => name.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map((iconName) => (
+                    <Button
+                      key={iconName}
+                      variant="outline"
+                      className="h-10 w-10 p-0 flex items-center justify-center"
+                      onClick={() => {
+                        dispatch({ type: "SET_ICON", payload: iconName });
+                        setIsIconSearchOpen(false);
+                      }}
+                    >
+                      {renderIcon(iconName)}
+                    </Button>
+                  ))}
           </div>
         </ScrollArea>
       </div>
@@ -230,6 +246,7 @@ export default function HabitForm({
           </SelectContent>
         </Select>
       </div>
+
       <div>
         <Label>Color</Label>
         <div className="flex space-x-2 mt-1">
@@ -247,6 +264,34 @@ export default function HabitForm({
           ))}
         </div>
       </div>
+
+      <div>
+        <Label>Frequency</Label>
+        <div className="mt-2 space-y-2">
+          <Button
+            type="button"
+            variant={state.frequency.length === 0 ? "default" : "outline"}
+            onClick={() => handleFrequencyChange('everyday')}
+            className="w-full justify-center"
+          >
+            Everyday
+          </Button>
+          <div className="grid grid-cols-7 gap-1">
+            {DAYS_OF_WEEK.map((day) => (
+              <Button
+                key={day}
+                type="button"
+                variant={state.frequency.includes(day) ? "default" : "outline"}
+                onClick={() => toggleDay(day)}
+                className="w-full h-10 p-0 text-xs"
+              >
+                {day.slice(0, 1)}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-end space-x-2">
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
