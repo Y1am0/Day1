@@ -6,6 +6,7 @@ import {
   primaryKey,
   integer,
   pgEnum,
+  date,
 } from "drizzle-orm/pg-core";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -125,6 +126,6 @@ export const habitStatuses = pgTable("habit_statuses", {
   habitId: text("habitId")
     .notNull()
     .references(() => habits.id, { onDelete: "cascade" }), // FK to the habit
-  date: timestamp("date", { mode: "date" }).notNull(), // Date for which the status is tracked
+  date: date("date", { mode: "date" }).notNull(), // Date for which the status is tracked
   status: habitStatusEnum("status").notNull(), // Status (done, skipped, planned)
 });
