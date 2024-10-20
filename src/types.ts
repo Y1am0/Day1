@@ -1,9 +1,12 @@
+export type Frequency = string[];
+
 export type Habit = {
   id: string;
   name: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   color: string;
   icon: string;
+  frequency: Frequency;
 };
 
 export type HabitStatus = Map<string, Map<string, 'done' | 'planned' | 'skipped'>>;
@@ -23,7 +26,9 @@ export type FormAction =
   | { type: 'SET_DIFFICULTY'; payload: 'Easy' | 'Medium' | 'Hard' }
   | { type: 'SET_COLOR'; payload: string }
   | { type: 'SET_ICON'; payload: string }
-  | { type: 'SET_HABIT_TYPE'; payload: 'suggested' | 'custom' };
+  | { type: 'SET_HABIT_TYPE'; payload: 'suggested' | 'custom' }
+  | { type: 'SET_FREQUENCY'; payload: string[] }
+  | { type: 'TOGGLE_DAY'; payload: string };
 
 export type IconRendererProps = {
   iconName: string;
