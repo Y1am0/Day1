@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import HabitForm from './HabitForm';
+import HabitForm from '../HabitForm';
 import { Habit } from '@/types';
 
 type AddHabitDialogProps = {

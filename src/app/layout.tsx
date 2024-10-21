@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { ThemeProvider } from "@/components/ThemeContext";
+import { ThemeProvider } from "@/components/theme/ThemeContext";
 import { SessionProvider } from "next-auth/react";
 
 const geistSans = localFont({

@@ -24,8 +24,8 @@ export const COLORS = {
     { name: 'Sleep', icon: 'FaBed' }
   ];
   
-  export const DIFFICULTY_COLORS = {
-    'Easy': 'bg-green-500 dark:bg-green-600',
-    'Medium': 'bg-yellow-500 dark:bg-yellow-600',
-    'Hard': 'bg-red-500 dark:bg-red-600',
+export const DIFFICULTY_COLORS: Record<'Easy' | 'Medium' | 'Hard', string> = {
+    Easy: 'bg-green-500 dark:bg-green-600',
+    Medium: 'bg-yellow-500 dark:bg-yellow-600',
+    Hard: 'bg-red-500 dark:bg-red-600',
   }
