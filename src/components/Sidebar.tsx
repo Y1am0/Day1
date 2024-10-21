@@ -1,9 +1,9 @@
 import React, { forwardRef } from 'react'
 import { Menu, Sun, Moon, CircleUserRound, LogOut, User, CalendarArrowDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import HabitListItem from './HabitListItem'
+import HabitListItem from './SingleHabit/HabitListItem'
 import { Habit } from '@/types'
-import { useTheme } from './ThemeContext'
+import { useTheme } from './theme/ThemeContext'
 import LogoIcon from '@/app/icons/logo'
 import { useSession, signOut } from "next-auth/react"
 import Image from 'next/image'
