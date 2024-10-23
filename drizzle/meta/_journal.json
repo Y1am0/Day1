@@ -8,6 +8,13 @@
       "when": 1729397693574,
       "tag": "0000_regular_mathemanic",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1729638141849,
+      "tag": "0001_next_purple_man",
+      "breakpoints": true
     }
   ]
 }
