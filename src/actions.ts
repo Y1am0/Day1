@@ -1,7 +1,7 @@
 "use server"
 
 import { getUserHabits, insertHabit, updateHabit, deleteHabit } from '@/db/habitQueries';
-import { getHabitStatusesForDates, setHabitStatus, deleteHabitStatus } from '@/db/habitStatusQueries';
+import { getHabitStatusesForDates, setHabitStatus, deleteHabitStatus, revalidateHabitStreak } from '@/db/habitStatusQueries';
 import { Habit } from '@/types';
 
 // Fetch all habits for a user
@@ -48,4 +48,7 @@ export async function toggleHabitStatus(habitId: string, date: string, status: '
     // Otherwise, insert or update the status
     await setHabitStatus(habitId, date, status);
   }
+
+  await revalidateHabitStreak(habitId);
+
 }

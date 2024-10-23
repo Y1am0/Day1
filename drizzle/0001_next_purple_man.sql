@@ -1,0 +1,1 @@
+ALTER TABLE "habit_statuses" ADD COLUMN "consecutiveDays" integer DEFAULT 0;
