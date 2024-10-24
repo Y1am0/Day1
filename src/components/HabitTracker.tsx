@@ -198,6 +198,8 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
     updateLoadingStatus(habitId, normalizedDate, true); // Mark all dates for the habit as loading
   });
 
+  const currentConsecutiveDays = currentStatusEntry?.consecutiveDays || 0; // Fetch current consecutiveDays
+
     // Optimistic update before the server-side action
     setOptimisticStatus({ habitId, date, nextStatus });
 
@@ -207,27 +209,38 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
 
     // Fetch the updated statuses after revalidation for this specific habit
     const updatedStatuses = await fetchHabitStatuses(
-      [habitId], // Only fetch status for the toggled habit
+      [habitId],
       normalizeDate(dates[0]),
       normalizeDate(dates[dates.length - 1])
     );
 
 
-      // Update the UI again with all updated statuses including consecutive days
-      setHabitStatusState((prev: HabitStatus) => {
-        const newStatus = new Map(prev); // Clone the previous state
-        updatedStatuses.forEach((status) => {
-          const statusDate = normalizeDate(status.date);
-          const dateStatus = newStatus.get(statusDate) || new Map();
-          dateStatus.set(status.habitId, {
-            status: status.status,
-            consecutiveDays: status.consecutiveDays,
-          });
-          newStatus.set(statusDate, dateStatus); // Save the updated date status map
-        
-          updateLoadingStatus(status.habitId, statusDate, false);
+// Ensure the toggled date is included in the UI update
+setHabitStatusState((prev: HabitStatus) => {
+  const newStatus = new Map(prev);
+  
+  // Handle the toggled date explicitly
+  const toggledDateStatus = updatedStatuses.find(status => normalizeDate(status.date) === normalizeDate(date));
+  if (toggledDateStatus) {
+    const dateStatus = newStatus.get(date) || new Map();
+    dateStatus.set(habitId, {
+      status: toggledDateStatus.status,
+      consecutiveDays: toggledDateStatus.consecutiveDays, // Correct consecutiveDays value
+    });
+    newStatus.set(date, dateStatus);
+  }
 
-        });
+  // Update other dates as usual
+  updatedStatuses.forEach((status) => {
+    const statusDate = normalizeDate(status.date);
+    const dateStatus = newStatus.get(statusDate) || new Map();
+    dateStatus.set(status.habitId, {
+      status: status.status,
+      consecutiveDays: status.consecutiveDays,
+    });
+    newStatus.set(statusDate, dateStatus);
+    updateLoadingStatus(status.habitId, statusDate, false);
+  });
 
       // Trigger re-render after state update
       setTriggerRender((prev) => !prev);
@@ -239,9 +252,15 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
 
       // If the server action fails, revert the optimistic update
       setHabitStatusState((prev: HabitStatus) => {
-        const newStatus = new Map(prev); // Clone the previous state
+        const newStatus = new Map(prev);
         const dateStatus = newStatus.get(date) || new Map();
-        dateStatus.set(habitId, { status: currentStatus }); // Revert to original status
+        
+        // Revert both status and consecutiveDays
+        dateStatus.set(habitId, { 
+          status: currentStatus, 
+          consecutiveDays: currentConsecutiveDays // Revert consecutiveDays
+        });
+        
         newStatus.set(date, dateStatus);
         return newStatus;
       });
