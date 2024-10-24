@@ -23,19 +23,14 @@ const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 function habitFormReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
     case "SET_NAME":
-      return { ...state, name: action.payload };
-    case "SET_PREDEFINED_HABIT":
-      return { ...state, name: action.payload.name, icon: action.payload.icon };
     case "SET_DIFFICULTY":
-      return { ...state, difficulty: action.payload };
     case "SET_COLOR":
-      return { ...state, color: action.payload };
     case "SET_ICON":
-      return { ...state, icon: action.payload };
     case "SET_HABIT_TYPE":
-      return { ...state, habitType: action.payload };
     case "SET_FREQUENCY":
-      return { ...state, frequency: action.payload };
+      return { ...state, [action.type.toLowerCase().slice(4)]: action.payload };
+    case "SET_PREDEFINED_HABIT":
+      return { ...state, ...action.payload };
     case "TOGGLE_DAY":
       const updatedDays = state.frequency.includes(action.payload)
         ? state.frequency.filter(day => day !== action.payload)
