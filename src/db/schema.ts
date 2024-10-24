@@ -102,16 +102,16 @@ export const difficultyEnum = pgEnum("difficulty", ["Easy", "Medium", "Hard"]);
 export const habits = pgTable("habits", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()), // Habit ID
+    .$defaultFn(() => crypto.randomUUID()),
   userId: text("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }), // FK to the user
+    .references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(), // Habit name
-  difficulty: difficultyEnum("difficulty").notNull(), // Enum for difficulty (Easy, Medium, Hard)
-  color: text("color").notNull(), // Color string
-  icon: text("icon").notNull(), // Icon identifier (e.g., FaDumbbell)
+  difficulty: difficultyEnum("difficulty").notNull(),
+  color: text("color").notNull(),
+  icon: text("icon").notNull(),
   frequency: text("frequency").array().notNull().default([]),
-  createdAt: timestamp("createdAt").defaultNow(), // Creation date
+  createdAt: timestamp("createdAt").defaultNow(),
 });
 
 export const habitStatusEnum = pgEnum("habitStatus", [
@@ -123,10 +123,11 @@ export const habitStatusEnum = pgEnum("habitStatus", [
 export const habitStatuses = pgTable("habit_statuses", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()), // Status ID
+    .$defaultFn(() => crypto.randomUUID()),
   habitId: text("habitId")
     .notNull()
-    .references(() => habits.id, { onDelete: "cascade" }), // FK to the habit
-  date: date("date", { mode: "date" }).notNull(), // Date for which the status is tracked
-  status: habitStatusEnum("status").notNull(), // Status (done, skipped, planned)
+    .references(() => habits.id, { onDelete: "cascade" }),
+  date: date("date", { mode: "date" }).notNull(),
+  status: habitStatusEnum("status").notNull(),
+  consecutiveDays: integer("consecutiveDays").default(0),
 });

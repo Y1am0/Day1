@@ -17,12 +17,12 @@ export const insertHabit = async (habit: Omit<Habit, 'id'> & { userId: string })
   const newHabit = { 
     ...habit, 
     id: crypto.randomUUID(),
-    frequency_days: habit.frequency // Store frequency as frequency_days in the database
+    frequency_days: habit.frequency
   };
   await db.insert(habits).values(newHabit);
   return {
     ...newHabit,
-    frequency: newHabit.frequency_days // Return frequency as frequency for consistency with Habit type
+    frequency: newHabit.frequency_days
   };
 };
 
@@ -30,12 +30,12 @@ export const insertHabit = async (habit: Omit<Habit, 'id'> & { userId: string })
 export const updateHabit = async (updatedHabit: Habit) => {
   const habitForDb = {
     ...updatedHabit,
-    frequency_days: updatedHabit.frequency // Store frequency as frequency_days in the database
+    frequency_days: updatedHabit.frequency
   };
   await db.update(habits)
     .set(habitForDb)
     .where(eq(habits.id, updatedHabit.id));
-  return updatedHabit; // Return the original updatedHabit for consistency
+  return updatedHabit;
 };
 
 // Delete a habit

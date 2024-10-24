@@ -15,9 +15,15 @@ export interface Habit {
   frequency: Frequency;
 }
 
+
+// export type HabitStatus = Map<
+//   string,
+//   Map<string, "done" | "planned" | "skipped">
+// >;
+
 export type HabitStatus = Map<
   string,
-  Map<string, "done" | "planned" | "skipped">
+  Map<string, { status: "done" | "planned" | "skipped", consecutiveDays?: number}>
 >;
 
 export interface User {

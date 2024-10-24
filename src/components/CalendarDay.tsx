@@ -2,9 +2,10 @@ import React from 'react';
 import { format, isSameDay } from 'date-fns';
 import { Hourglass, Check } from "lucide-react";
 import { CalendarDayProps } from '@/types';
+import { normalizeDate } from '@/lib/habitUtils';
 
 export default function CalendarDay({ date, habits, habitStatus, toggleStatus }: CalendarDayProps) {
-  const formattedDate = format(date, 'yyyy-MM-dd');
+  const formattedDate = normalizeDate(date);
   const isCurrentDay = isSameDay(date, new Date());
 
   return (
@@ -15,7 +16,10 @@ export default function CalendarDay({ date, habits, habitStatus, toggleStatus }:
         <div className="text-xs uppercase text-muted-foreground transition-colors duration-300 ease-in-out">{format(date, 'MMM')}</div>
       </div>
       {habits.map(habit => {
-        const status = habitStatus.get(formattedDate)?.get(habit.id) || 'skipped';
+        const statusEntry = habitStatus.get(formattedDate)?.get(habit.id);
+        const status = statusEntry?.status || 'skipped';
+        const consecutiveDays = statusEntry?.consecutiveDays;
+
         return (
           <div
             key={`${habit.id}-${formattedDate}`}
@@ -27,7 +31,16 @@ export default function CalendarDay({ date, habits, habitStatus, toggleStatus }:
             onClick={() => toggleStatus(habit.id, formattedDate)}
             title={`Click to toggle status`} 
           >
-            {status === 'done' && <Check className="w-8 h-8 text-white transition-colors duration-300 ease-in-out" />}
+            {status === 'done' && (
+              <div className="relative flex items-center justify-center h-full w-full">
+                <Check className="w-8 h-8 text-white transition-colors duration-300 ease-in-out" />
+                {consecutiveDays !== undefined && (
+                  <div className="absolute bottom-0 right-0 text-md rounded-full bg-black/5 overflow-hidden m-1 px-2 text-white">
+                    {consecutiveDays}
+                  </div>
+                )}
+              </div>
+            )}
             {status === 'planned' && <Hourglass className="size-5 text-muted-foreground dark:text-foreground transition-colors duration-300 ease-in-out" />}
           </div>
         );

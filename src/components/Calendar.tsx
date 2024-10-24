@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
-import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import CalendarDay from './CalendarDay';
 import { Habit, HabitStatus } from '@/types';
+import { normalizeDate } from '@/lib/habitUtils';
 
 interface CalendarProps {
   dates: Date[];
@@ -80,7 +80,7 @@ export default function Calendar({
         </div>
         {dates.map(date => (
           <CalendarDay
-            key={format(date, 'yyyy-MM-dd')}
+            key={normalizeDate(date)}
             date={date}
             habits={habits}
             habitStatus={habitStatus}

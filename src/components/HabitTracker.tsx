@@ -1,17 +1,32 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback, useRef, useOptimistic } from 'react';
-import { format } from 'date-fns';
-import { Plus } from 'lucide-react';
-import Sidebar from './Sidebar';
-import Calendar from './Calendar';
-import EditHabitDialog from '@/components/Dialogs/EditHabitDialog';
-import AddHabitDialog from '@/components/Dialogs/AddHabitDialog';
-import FloatingMessage from '@/components/FloatingMessage';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useOptimistic,
+} from "react";
+import { format } from "date-fns";
+import { Plus } from "lucide-react";
+import Sidebar from "./Sidebar";
+import Calendar from "./Calendar";
+import EditHabitDialog from "@/components/Dialogs/EditHabitDialog";
+import AddHabitDialog from "@/components/Dialogs/AddHabitDialog";
+import FloatingMessage from "@/components/FloatingMessage";
 import { Button } from "@/components/ui/button";
-import { Habit, HabitStatus } from '@/types';
-import { useMediaQuery, useDates } from '@/lib/habitUtils';
-import { fetchHabits, addHabit, editHabit, removeHabit, fetchHabitStatuses, toggleHabitStatus } from '@/actions';
+import { Habit, HabitStatus } from "@/types";
+import { normalizeDate } from "@/lib/habitUtils";
+import { useDates } from "@/lib/hooks/useDates";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
+import {
+  fetchHabits,
+  addHabit,
+  editHabit,
+  removeHabit,
+  fetchHabitStatuses,
+  toggleHabitStatus,
+} from "@/actions";
 
 type HabitTrackerProps = {
   user: { id: string };
@@ -26,23 +41,29 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(!isDesktop);
-  const [floatingMessage, setFloatingMessage] = useState<{ message: string; position: { top: number } } | null>(null);
+  const [floatingMessage, setFloatingMessage] = useState<{
+    message: string;
+    position: { top: number };
+  } | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Optimistic state for habit status
-  const [optimisticStatus, setOptimisticStatus] = useOptimistic(habitStatus, (prev, [habitId, date, nextStatus]) => {
-    const newStatus = new Map(prev);
-    const dateStatus = newStatus.get(date) || new Map();
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(
+    habitStatus,
+    (prev: HabitStatus, { habitId, date, nextStatus }) => {
+      const newStatus = new Map(prev);
+      const dateStatus = newStatus.get(date) || new Map();
 
-    if (nextStatus === 'skipped') {
-      dateStatus.delete(habitId);
-    } else {
-      dateStatus.set(habitId, nextStatus);
+      if (nextStatus === "skipped") {
+        dateStatus.delete(habitId);
+      } else {
+        dateStatus.set(habitId, { status: nextStatus });
+      }
+
+      newStatus.set(date, dateStatus);
+      return newStatus;
     }
-    
-    newStatus.set(date, dateStatus);
-    return newStatus;
-  });
+  );
 
   // Fetch habits when the component mounts
   useEffect(() => {
@@ -58,34 +79,41 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   useEffect(() => {
     const loadHabitStatuses = async () => {
       if (habits.length > 0) {
-        const habitIds = habits.map(habit => habit.id);
-        const startDate = dates[0].toISOString();
-        const endDate = dates[dates.length - 1].toISOString();
+        const habitIds = habits.map((habit) => habit.id);
+        const startDate = normalizeDate(dates[0]); // Use the utility function
+        const endDate = normalizeDate(dates[dates.length - 1]); // Use the utility function
+        
 
         const statuses = await fetchHabitStatuses(habitIds, startDate, endDate);
-        const statusMap = new Map<string, Map<string, 'done' | 'planned' | 'skipped'>>();
-        
+        const statusMap: HabitStatus = new Map();
+
         // Process fetched statuses
-        statuses.forEach(status => {
-          const date = status.date.toISOString().split('T')[0];
+        statuses.forEach((status) => {
+          const date = normalizeDate(status.date);
           if (!statusMap.has(date)) {
             statusMap.set(date, new Map());
           }
-          statusMap.get(date)?.set(status.habitId, status.status);
+          statusMap.get(date)?.set(status.habitId, {
+            status: status.status,
+            consecutiveDays: status.consecutiveDays ?? undefined, // Include consecutiveDays
+          });
         });
 
-        habits.forEach(habit => {
-          dates.forEach(date => {
-            const dayOfWeek = format(date, 'EEE');
-            const dateStr = date.toISOString().split('T')[0];
+        habits.forEach((habit) => {
+          dates.forEach((date) => {
+            const dayOfWeek = format(date, "EEE");
+            const dateStr = normalizeDate(date);
             const habitStatuses = statusMap.get(dateStr) || new Map();
-            
+
             if (!habitStatuses.has(habit.id)) {
-              if (habit.frequency.length > 0 && !habit.frequency.includes(dayOfWeek)) {
+              if (
+                habit.frequency.length > 0 &&
+                !habit.frequency.includes(dayOfWeek)
+              ) {
                 // If frequency is not empty and the day is not in the frequency, set as 'planned'
-                habitStatuses.set(habit.id, 'planned');
+                habitStatuses.set(habit.id, { status: "planned" });
               }
-              // If frequency is empty (everyday) or the day is in the frequency, we don't set any status
+              // If frequency is empty (every day) or the day is in the frequency, we don't set any status
               statusMap.set(dateStr, habitStatuses);
             }
           });
@@ -99,7 +127,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   }, [habits, dates]);
 
   // Add habit
-  const handleAddHabit = async (habit: Omit<Habit, 'id'>) => {
+  const handleAddHabit = async (habit: Omit<Habit, "id">) => {
     const newHabit = await addHabit({ ...habit, userId: user.id });
     setHabits((prevHabits) => [...prevHabits, newHabit]);
     setIsAddHabitOpen(false);
@@ -110,7 +138,10 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
       const habitHeight = 40; // Approximate height of a habit item
       const topOffset = 100; // Height of the sidebar header
       const position = { top: topOffset + newHabitIndex * habitHeight };
-      setFloatingMessage({ message: `Added habit: ${newHabit.name}`, position });
+      setFloatingMessage({
+        message: `Added habit: ${newHabit.name}`,
+        position,
+      });
     }
   };
 
@@ -123,7 +154,9 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   // Submit habit edit
   const handleEditHabit = async (updatedHabit: Habit) => {
     await editHabit(updatedHabit);
-    setHabits((prevHabits) => prevHabits.map(h => h.id === updatedHabit.id ? updatedHabit : h));
+    setHabits((prevHabits) =>
+      prevHabits.map((h) => (h.id === updatedHabit.id ? updatedHabit : h))
+    );
     setIsEditHabitOpen(false);
     setEditingHabit(null);
   };
@@ -131,45 +164,55 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   // Delete habit
   const handleRemoveHabit = async (id: string) => {
     await removeHabit(id);
-    setHabits((prevHabits) => prevHabits.filter(h => h.id !== id));
+    setHabits((prevHabits) => prevHabits.filter((h) => h.id !== id));
   };
 
-  // Toggle habit status with optimistic update
   const handleToggleStatus = async (habitId: string, date: string) => {
-    const currentStatus = habitStatus.get(date)?.get(habitId) || 'skipped';
-    const nextStatus = currentStatus === 'skipped' ? 'done' : currentStatus === 'done' ? 'planned' : 'skipped';
+    const currentStatusEntry = habitStatus.get(date)?.get(habitId);
+    const currentStatus = currentStatusEntry?.status || "skipped";
+    const nextStatus =
+      currentStatus === "skipped"
+        ? "done"
+        : currentStatus === "done"
+        ? "planned"
+        : "skipped";
 
     // Optimistic update before the server-side action
-    setOptimisticStatus([habitId, date, nextStatus]);
+    setOptimisticStatus({ habitId, date, nextStatus });
 
     try {
       // Perform the server-side action to handle database sync
       await toggleHabitStatus(habitId, date, nextStatus);
 
-      // After successful server action, ensure the UI state matches the server
-      setHabitStatusState(prev => {
-        const newStatus = new Map(prev);
-        const dateStatus = newStatus.get(date) || new Map();
-        if (nextStatus === 'skipped') {
-          dateStatus.delete(habitId);
-        } else {
-          dateStatus.set(habitId, nextStatus);
-        }
-        newStatus.set(date, dateStatus);
+      // Fetch the updated statuses after revalidatio
+      const updatedStatuses = await fetchHabitStatuses(
+        [habitId],
+        normalizeDate(dates[0]), // Use the utility function
+        normalizeDate(dates[dates.length - 1]) // Use the utility function
+      );
+
+      // Update the UI again with all updated statuses including consecutive days
+      setHabitStatusState((prev: HabitStatus) => {
+        const newStatus = new Map(prev); // Clone the previous state
+        updatedStatuses.forEach((status) => {
+          const statusDate = normalizeDate(status.date);
+          const dateStatus = newStatus.get(statusDate) || new Map();
+          dateStatus.set(status.habitId, {
+            status: status.status,
+            consecutiveDays: status.consecutiveDays,
+          });
+          newStatus.set(statusDate, dateStatus); // Save the updated date status map
+        });
         return newStatus;
       });
     } catch (error) {
-      console.error('Failed to toggle status:', error);
+      console.error("Failed to toggle status:", error);
 
       // If the server action fails, revert the optimistic update
-      setHabitStatusState(prev => {
-        const newStatus = new Map(prev);
+      setHabitStatusState((prev: HabitStatus) => {
+        const newStatus = new Map(prev); // Clone the previous state
         const dateStatus = newStatus.get(date) || new Map();
-        if (currentStatus === 'skipped') {
-          dateStatus.delete(habitId);
-        } else {
-          dateStatus.set(habitId, currentStatus);
-        }
+        dateStatus.set(habitId, { status: currentStatus }); // Revert to original status
         newStatus.set(date, dateStatus);
         return newStatus;
       });
@@ -178,8 +221,14 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
 
   // Scroll to today's date
   const scrollToToday = () => {
-    const todayElement = document.querySelector(`[data-date="${format(new Date(), 'yyyy-MM-dd')}"]`);
-    todayElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    const todayElement = document.querySelector(
+      `[data-date="${normalizeDate(new Date())}"]`
+    );
+    todayElement?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
   };
 
   // Scroll to today on load
@@ -190,13 +239,17 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   // Update floating message position when habits or sidebar state change
   const updateFloatingMessagePosition = useCallback(() => {
     if (floatingMessage) {
-      const habitIndex = habits.findIndex(h => h.name === floatingMessage.message.replace('Added habit: ', ''));
+      const habitIndex = habits.findIndex(
+        (h) => h.name === floatingMessage.message.replace("Added habit: ", "")
+      );
       if (habitIndex !== -1) {
         const habitHeight = 100; // Approximate height of a habit item
         const topOffset = 100; // Height of the sidebar header
         const newPosition = { top: topOffset + habitIndex * habitHeight };
         if (newPosition.top !== floatingMessage.position.top) {
-          setFloatingMessage(prev => prev ? { ...prev, position: newPosition } : null);
+          setFloatingMessage((prev) =>
+            prev ? { ...prev, position: newPosition } : null
+          );
         }
       }
     }
