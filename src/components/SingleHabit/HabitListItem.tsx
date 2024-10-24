@@ -6,7 +6,7 @@ import IconRenderer from './IconRenderer';
 import DeleteConfirmation from '../Dialogs/DeleteConfirmation';
 import HabitActions from './HabitActions';
 import HabitDifficulty from './HabitDifficulty';
-import { useMediaQuery } from '@/lib/habitUtils';
+import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { DIFFICULTY_COLORS } from '@/app/constants';
 
 export default function HabitListItem({ habit, onEdit, onDelete, isCollapsed }: HabitListItemProps) {
