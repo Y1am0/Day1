@@ -1,10 +1,12 @@
 import { db } from "@/db";
 import { habits, habitStatuses } from "@/db/schema";
 import { eq, and, gte, lte, inArray, asc } from "drizzle-orm";
+import { normalizeDate } from "@/lib/habitUtils";
 import { format } from "date-fns";
 
 // Get habit status for a specific habit and date, including consecutiveDays
 export const getHabitStatus = async (habitId: string, date: string) => {
+  const normalizedDate = normalizeDate(date); // Use utility function
   return await db
     .select({
       habitId: habitStatuses.habitId,
@@ -16,7 +18,7 @@ export const getHabitStatus = async (habitId: string, date: string) => {
     .where(
       and(
         eq(habitStatuses.habitId, habitId),
-        eq(habitStatuses.date, new Date(date))
+        eq(habitStatuses.date, new Date(normalizedDate))
       )
     );
 };
@@ -27,7 +29,8 @@ export const setHabitStatus = async (
   date: string,
   status: "skipped" | "done" | "planned"
 ) => {
-  const existingStatus = await getHabitStatus(habitId, date);
+  const normalizedDate = normalizeDate(date);
+  const existingStatus = await getHabitStatus(habitId, normalizedDate);
 
   if (existingStatus.length > 0) {
     // Update the existing status
@@ -37,7 +40,7 @@ export const setHabitStatus = async (
       .where(
         and(
           eq(habitStatuses.habitId, habitId),
-          eq(habitStatuses.date, new Date(date))
+          eq(habitStatuses.date, new Date(normalizedDate))
         )
       );
   } else {
@@ -45,23 +48,27 @@ export const setHabitStatus = async (
     await db.insert(habitStatuses).values({
       id: crypto.randomUUID(),
       habitId,
-      date: new Date(date),
+      date: new Date(normalizedDate), // Store date without time zone
       status,
     });
   }
 };
 
+
 // Delete habit status for a specific habit and date
 export const deleteHabitStatus = async (habitId: string, date: string) => {
+  const normalizedDate = normalizeDate(date);
+
   await db
     .delete(habitStatuses)
     .where(
       and(
         eq(habitStatuses.habitId, habitId),
-        eq(habitStatuses.date, new Date(date))
+        eq(habitStatuses.date, new Date(normalizedDate))
       )
     );
 };
+
 
 // Get habit statuses for multiple dates, including consecutiveDays
 export const getHabitStatusesForDates = async (
@@ -69,6 +76,9 @@ export const getHabitStatusesForDates = async (
   startDate: string,
   endDate: string
 ) => {
+  const normalizedStartDate = normalizeDate(startDate);
+  const normalizedEndDate = normalizeDate(endDate);
+
   return await db
     .select({
       id: habitStatuses.id,
@@ -81,11 +91,12 @@ export const getHabitStatusesForDates = async (
     .where(
       and(
         inArray(habitStatuses.habitId, habitIds),
-        gte(habitStatuses.date, new Date(startDate)),
-        lte(habitStatuses.date, new Date(endDate))
+        gte(habitStatuses.date, new Date(normalizedStartDate)),
+        lte(habitStatuses.date, new Date(normalizedEndDate))
       )
     );
 };
+
 
 // Fetch all logs for a given habit
 export const getAllHabitLogs = async (habitId: string) => {
@@ -118,26 +129,28 @@ export const revalidateHabitStreak = async (habitId: string) => {
   const frequency = habit.frequency; // Habit frequency (e.g., [], ['Thu', 'Fri', 'Sat', 'Sun'])
 
   let consecutiveDays = 0;
-  let previousDate: Date | null = null;
-  let lastDoneDate: Date | null = null; // Track the last `done` date
+  let previousDate: string | null = null; // Keep previousDate as a string in yyyy-MM-dd format
+  let lastDoneDate: string | null = null; // Track the last `done` date in yyyy-MM-dd format
 
   // Iterate through each log and update the streak
   for (const log of logs) {
-    const currentDate = new Date(log.date);
+    const currentDate = normalizeDate(log.date);
 
     if (previousDate) {
       const daysDiff = Math.floor(
-        (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24)
+        (new Date(currentDate).getTime() - new Date(previousDate).getTime()) / (1000 * 60 * 60 * 24)
       );
 
       // Check if the difference between logs is more than 1 day and requires a reset
       if (daysDiff > 1) {
         for (let i = 1; i < daysDiff; i++) {
           const missingDate = new Date(previousDate);
-          missingDate.setDate(previousDate.getDate() + i);
+          missingDate.setDate(missingDate.getDate() + i);
+
+          const normalizedMissingDate = normalizeDate(missingDate); // Normalize missingDate to yyyy-MM-dd format
 
           // Check if the missing date is part of the habit's frequency
-          if (isHabitDay(missingDate, frequency)) {
+          if (isHabitDay(new Date(normalizedMissingDate), frequency)) {
             // If a required day is missing, reset the streak
             consecutiveDays = 0;
             lastDoneDate = null;
@@ -160,7 +173,7 @@ export const revalidateHabitStreak = async (habitId: string) => {
       .set({ consecutiveDays })
       .where(eq(habitStatuses.id, log.id));
 
-    previousDate = currentDate;
+    previousDate = currentDate; // Update previousDate to currentDate
   }
 };
 

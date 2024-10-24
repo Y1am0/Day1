@@ -16,7 +16,9 @@ import AddHabitDialog from "@/components/Dialogs/AddHabitDialog";
 import FloatingMessage from "@/components/FloatingMessage";
 import { Button } from "@/components/ui/button";
 import { Habit, HabitStatus } from "@/types";
-import { useMediaQuery, useDates } from "@/lib/habitUtils";
+import { normalizeDate } from "@/lib/habitUtils";
+import { useDates } from "@/lib/hooks/useDates";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import {
   fetchHabits,
   addHabit,
@@ -78,15 +80,16 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
     const loadHabitStatuses = async () => {
       if (habits.length > 0) {
         const habitIds = habits.map((habit) => habit.id);
-        const startDate = dates[0].toISOString();
-        const endDate = dates[dates.length - 1].toISOString();
+        const startDate = normalizeDate(dates[0]); // Use the utility function
+        const endDate = normalizeDate(dates[dates.length - 1]); // Use the utility function
+        
 
         const statuses = await fetchHabitStatuses(habitIds, startDate, endDate);
         const statusMap: HabitStatus = new Map();
 
         // Process fetched statuses
         statuses.forEach((status) => {
-          const date = status.date.toISOString().split("T")[0];
+          const date = normalizeDate(status.date);
           if (!statusMap.has(date)) {
             statusMap.set(date, new Map());
           }
@@ -99,7 +102,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
         habits.forEach((habit) => {
           dates.forEach((date) => {
             const dayOfWeek = format(date, "EEE");
-            const dateStr = date.toISOString().split("T")[0];
+            const dateStr = normalizeDate(date);
             const habitStatuses = statusMap.get(dateStr) || new Map();
 
             if (!habitStatuses.has(habit.id)) {
@@ -184,15 +187,15 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
       // Fetch the updated statuses after revalidatio
       const updatedStatuses = await fetchHabitStatuses(
         [habitId],
-        dates[0].toISOString(),
-        dates[dates.length - 1].toISOString()
+        normalizeDate(dates[0]), // Use the utility function
+        normalizeDate(dates[dates.length - 1]) // Use the utility function
       );
 
       // Update the UI again with all updated statuses including consecutive days
       setHabitStatusState((prev: HabitStatus) => {
         const newStatus = new Map(prev); // Clone the previous state
         updatedStatuses.forEach((status) => {
-          const statusDate = status.date.toISOString().split("T")[0];
+          const statusDate = normalizeDate(status.date);
           const dateStatus = newStatus.get(statusDate) || new Map();
           dateStatus.set(status.habitId, {
             status: status.status,
@@ -219,7 +222,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   // Scroll to today's date
   const scrollToToday = () => {
     const todayElement = document.querySelector(
-      `[data-date="${format(new Date(), "yyyy-MM-dd")}"]`
+      `[data-date="${normalizeDate(new Date())}"]`
     );
     todayElement?.scrollIntoView({
       behavior: "smooth",

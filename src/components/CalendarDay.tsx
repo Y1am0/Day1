@@ -2,9 +2,10 @@ import React from 'react';
 import { format, isSameDay } from 'date-fns';
 import { Hourglass, Check } from "lucide-react";
 import { CalendarDayProps } from '@/types';
+import { normalizeDate } from '@/lib/habitUtils';
 
 export default function CalendarDay({ date, habits, habitStatus, toggleStatus }: CalendarDayProps) {
-  const formattedDate = format(date, 'yyyy-MM-dd');
+  const formattedDate = normalizeDate(date);
   const isCurrentDay = isSameDay(date, new Date());
 
   return (
