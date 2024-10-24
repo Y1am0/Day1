@@ -10,6 +10,7 @@ interface CalendarProps {
   habitStatus: HabitStatus;
   toggleStatus: (habitId: string, date: string) => void;
   loadMoreDates: () => Promise<void> | void;
+  loadingStatus: { [key: string]: boolean };
 }
 
 export default function Calendar({
@@ -17,7 +18,8 @@ export default function Calendar({
   habits,
   habitStatus,
   toggleStatus,
-  loadMoreDates
+  loadMoreDates,
+  loadingStatus,
 }: CalendarProps) {
   const calendarRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
@@ -85,6 +87,7 @@ export default function Calendar({
             habits={habits}
             habitStatus={habitStatus}
             toggleStatus={toggleStatus}
+            loadingStatus={loadingStatus}
           />
         ))}
       </div>

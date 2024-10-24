@@ -41,11 +41,25 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(!isDesktop);
+  const [triggerRender, setTriggerRender] = useState(false);
   const [floatingMessage, setFloatingMessage] = useState<{
     message: string;
     position: { top: number };
   } | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
+
+  const [loadingStatus, setLoadingStatus] = useState<{ [key: string]: boolean }>({});
+
+  const updateLoadingStatus = (habitId: string, date: string, isLoading: boolean) => {
+    setLoadingStatus((prev) => ({
+      ...prev,
+      [`${habitId}-${date}`]: isLoading,
+    }));
+  };
+
+  useEffect(() => {
+    // This ensures the component re-renders when triggerRender is toggled
+  }, [triggerRender]);
 
   // Optimistic state for habit status
   const [optimisticStatus, setOptimisticStatus] = useOptimistic(
@@ -177,6 +191,13 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
         ? "planned"
         : "skipped";
 
+
+  // Set the loading state for ALL visible dates for the toggled habit
+  dates.forEach((d) => {
+    const normalizedDate = normalizeDate(d);
+    updateLoadingStatus(habitId, normalizedDate, true); // Mark all dates for the habit as loading
+  });
+
     // Optimistic update before the server-side action
     setOptimisticStatus({ habitId, date, nextStatus });
 
@@ -184,12 +205,13 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
       // Perform the server-side action to handle database sync
       await toggleHabitStatus(habitId, date, nextStatus);
 
-      // Fetch the updated statuses after revalidatio
-      const updatedStatuses = await fetchHabitStatuses(
-        [habitId],
-        normalizeDate(dates[0]), // Use the utility function
-        normalizeDate(dates[dates.length - 1]) // Use the utility function
-      );
+    // Fetch the updated statuses after revalidation for this specific habit
+    const updatedStatuses = await fetchHabitStatuses(
+      [habitId], // Only fetch status for the toggled habit
+      normalizeDate(dates[0]),
+      normalizeDate(dates[dates.length - 1])
+    );
+
 
       // Update the UI again with all updated statuses including consecutive days
       setHabitStatusState((prev: HabitStatus) => {
@@ -202,7 +224,14 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
             consecutiveDays: status.consecutiveDays,
           });
           newStatus.set(statusDate, dateStatus); // Save the updated date status map
+        
+          updateLoadingStatus(status.habitId, statusDate, false);
+
         });
+
+      // Trigger re-render after state update
+      setTriggerRender((prev) => !prev);
+
         return newStatus;
       });
     } catch (error) {
@@ -216,6 +245,9 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
         newStatus.set(date, dateStatus);
         return newStatus;
       });
+    } finally {
+      // Reset the loading state for the toggled habit/date in case of error or success
+      updateLoadingStatus(habitId, date, false);
     }
   };
 
@@ -277,6 +309,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
           habitStatus={optimisticStatus}
           toggleStatus={handleToggleStatus}
           loadMoreDates={loadMoreDates}
+          loadingStatus={loadingStatus}
         />
       </div>
       <Button
