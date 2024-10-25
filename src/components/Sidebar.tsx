@@ -17,6 +17,7 @@ interface SidebarProps {
   onEditHabit: (habit: Habit) => void
   onDeleteHabit: (id: string) => void
   scrollToToday: () => void
+  isDesktop: boolean
 }
 
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
@@ -25,7 +26,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   setIsSidebarCollapsed,
   onEditHabit,
   onDeleteHabit,
-  scrollToToday
+  scrollToToday,
 }, ref) => {
   const { theme, toggleTheme } = useTheme()
   const { data: session } = useSession()
@@ -42,7 +43,12 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
             <span className="font-semibold text-lg text-foreground transition-colors duration-300">DayOne</span>
           </div>
         )}
-        <Button className={`${isSidebarCollapsed && 'mx-auto'} p-1 transition-all duration-300`} variant="ghost" size="icon" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
+        <Button 
+          className={`${isSidebarCollapsed ? 'mx-auto' : ''} p-1 transition-all duration-300`}
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        >
           <Menu className="w-full h-auto text-foreground transition-colors duration-300" />
         </Button>
       </div>
