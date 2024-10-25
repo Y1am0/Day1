@@ -16,9 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import * as FaIcons from "react-icons/fa6";
 import { IconType } from "react-icons";
 import { HabitFormProps, FormState, FormAction } from "@/types";
-import { COLORS, SUGGESTED_HABITS } from "@/app/constants";
-
-const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+import { COLORS, DAYS_OF_WEEK, SUGGESTED_HABITS } from "@/app/constants";
 
 function habitFormReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
@@ -33,7 +31,7 @@ function habitFormReducer(state: FormState, action: FormAction): FormState {
       return { ...state, ...action.payload };
     case "TOGGLE_DAY":
       const updatedDays = state.frequency.includes(action.payload)
-        ? state.frequency.filter(day => day !== action.payload)
+        ? state.frequency.filter((day) => day !== action.payload)
         : [...state.frequency, action.payload];
       return { ...state, frequency: updatedDays };
     default:
@@ -53,7 +51,7 @@ export default function HabitForm({
     icon: initialHabit?.icon || "FaDumbbell",
     habitType: initialHabit ? "custom" : "suggested",
     frequency: initialHabit?.frequency || [],
-  });  
+  });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isIconSearchOpen, setIsIconSearchOpen] = useState(false);
@@ -78,8 +76,11 @@ export default function HabitForm({
     onClose();
   };
 
-  const handleFrequencyChange = (type: 'everyday' | 'custom') => {
-    dispatch({ type: "SET_FREQUENCY", payload: type === 'everyday' ? [] : state.frequency });
+  const handleFrequencyChange = (type: "everyday" | "custom") => {
+    dispatch({
+      type: "SET_FREQUENCY",
+      payload: type === "everyday" ? [] : state.frequency,
+    });
   };
 
   const toggleDay = (day: string) => {
@@ -117,7 +118,9 @@ export default function HabitForm({
                   <Skeleton key={index} className="h-10 w-10" />
                 ))
               : Object.keys(FaIcons)
-                  .filter(name => name.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter((name) =>
+                    name.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
                   .map((iconName) => (
                     <Button
                       key={iconName}
@@ -266,7 +269,7 @@ export default function HabitForm({
           <Button
             type="button"
             variant={state.frequency.length === 0 ? "default" : "outline"}
-            onClick={() => handleFrequencyChange('everyday')}
+            onClick={() => handleFrequencyChange("everyday")}
             className="w-full justify-center"
           >
             Everyday

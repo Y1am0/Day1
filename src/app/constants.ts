@@ -29,3 +29,5 @@ export const DIFFICULTY_COLORS: Record<'Easy' | 'Medium' | 'Hard', string> = {
     Medium: 'bg-yellow-500 dark:bg-yellow-600',
     Hard: 'bg-red-500 dark:bg-red-600',
   }
+
+  export const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

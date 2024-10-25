@@ -34,6 +34,10 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   const { isAddHabitOpen, isEditHabitOpen, editingHabit, openAddHabitDialog, closeAddHabitDialog, openEditHabitDialog, closeEditHabitDialog } = useDialogManagement();
 
   useEffect(() => {
+    setIsSidebarCollapsed(!isDesktop);
+  }, [isDesktop]);
+
+  useEffect(() => {
     updateFloatingMessagePosition();
   }, [isSidebarCollapsed, updateFloatingMessagePosition]);
 
@@ -85,6 +89,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
           onEditHabit={openEditHabitDialog}
           onDeleteHabit={handleRemoveHabit}
           scrollToToday={scrollToToday}
+          isDesktop={isDesktop}
         />
         <Calendar
           dates={dates}
