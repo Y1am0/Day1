@@ -1,6 +1,8 @@
 import React from "react";
 import { format, isSameDay } from "date-fns";
-import { Hourglass, Check, LoaderPinwheel } from "lucide-react"; // Import Loader2
+import { Hourglass, Check, 
+  // LoaderPinwheel 
+} from "lucide-react"; // Import Loader2
 import { CalendarDayProps } from "@/types";
 import { normalizeDate } from "@/lib/habitUtils";
 
@@ -9,7 +11,7 @@ export default function CalendarDay({
   habits,
   habitStatus,
   toggleStatus,
-  loadingStatus,
+  // loadingStatus,
 }: CalendarDayProps) {
   const formattedDate = normalizeDate(date);
   const isCurrentDay = isSameDay(date, new Date());
@@ -39,7 +41,7 @@ export default function CalendarDay({
         const status = statusEntry?.status || "skipped";
         const consecutiveDays = statusEntry?.consecutiveDays;
 
-        const isLoading = loadingStatus[`${habit.id}-${formattedDate}`]; // Check if this habit and date is loading
+        // const isLoading = loadingStatus[`${habit.id}-${formattedDate}`]; // Check if this habit and date is loading
 
         return (
           <div
@@ -59,13 +61,13 @@ export default function CalendarDay({
                 <Check className="w-8 h-8 text-white transition-colors duration-300 ease-in-out" />
               
                 <div className="absolute bottom-0 right-0 text-md rounded-full grid place-items-center bg-gradient-to-t from-black/10 shadow overflow-hidden m-1 size-6 text-white">
-                  {isLoading ? (
+                  {/* {isLoading ? (
                     <LoaderPinwheel className="w-5 h-5 animate-spin text-white" />
                   ) : (
-                    consecutiveDays !== undefined && (
+                    consecutiveDays !== undefined && ( */}
                       <span>{consecutiveDays}</span>
-                    )
-                  )}
+                    {/* )
+                  )} */}
                 </div>
               </div>
             )}
