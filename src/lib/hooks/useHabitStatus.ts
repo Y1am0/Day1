@@ -139,8 +139,8 @@ export function useHabitStatus(habits: Habit[], dates: Date[]) {
       //   });
       //   return newStatus;
       // });
-      
-      loadHabitStatuses();
+
+
     } catch (error) {
       console.error("Failed to toggle status:", error);
       setHabitStatusState((prev: HabitStatus) => {
@@ -150,8 +150,9 @@ export function useHabitStatus(habits: Habit[], dates: Date[]) {
         newStatus.set(date, dateStatus);
         return newStatus;
       });
-    // } finally {
-    //   updateLoadingStatus(habitId, date, false);
+    } finally {
+      loadHabitStatuses();
+      // updateLoadingStatus(habitId, date, false);
     }
   };
 
