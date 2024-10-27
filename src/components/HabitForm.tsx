@@ -24,9 +24,10 @@ function habitFormReducer(state: FormState, action: FormAction): FormState {
     case "SET_DIFFICULTY":
     case "SET_COLOR":
     case "SET_ICON":
-    case "SET_HABIT_TYPE":
     case "SET_FREQUENCY":
       return { ...state, [action.type.toLowerCase().slice(4)]: action.payload };
+    case "SET_HABIT_TYPE":
+      return { ...state, habitType: action.payload};
     case "SET_PREDEFINED_HABIT":
       return { ...state, ...action.payload };
     case "TOGGLE_DAY":
