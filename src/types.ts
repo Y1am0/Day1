@@ -70,7 +70,7 @@ export interface CalendarDayProps {
   habits: { id: string; color: string }[];
   habitStatus: HabitStatus;
   toggleStatus: (habitId: string, date: string) => void;
-  // loadingStatus: { [key: string]: boolean };
+  loadingStatus: { [key: string]: boolean };
 }
 
 export interface HabitFormProps {

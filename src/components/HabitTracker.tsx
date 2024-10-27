@@ -29,9 +29,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   const { habits, setHabits, handleAddHabit, handleEditHabit, handleRemoveHabit } = useHabitManagement(user.id, []);
-  const { optimisticStatus, 
-    //loadingStatus, 
-    handleToggleStatus } = useHabitStatus(habits, dates);
+  const { habitStatus, loadingStatus, handleToggleStatus } = useHabitStatus(habits, dates);
   const { floatingMessage, setFloatingMessage, updateFloatingMessagePosition, showFloatingMessage } = useFloatingMessage(habits);
   const { isAddHabitOpen, isEditHabitOpen, editingHabit, openAddHabitDialog, closeAddHabitDialog, openEditHabitDialog, closeEditHabitDialog } = useDialogManagement();
 
@@ -96,10 +94,10 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
         <Calendar
           dates={dates}
           habits={habits}
-          habitStatus={optimisticStatus}
+          habitStatus={habitStatus}
           toggleStatus={handleToggleStatus}
           loadMoreDates={loadMoreDates}
-          // loadingStatus={loadingStatus}
+          loadingStatus={loadingStatus}
         />
       </div>
       <Button
