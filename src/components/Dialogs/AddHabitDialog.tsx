@@ -24,7 +24,7 @@ export default function AddHabitDialog({ isOpen, onOpenChange, onSubmit, isDeskt
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[425px] bg-background text-foreground">
+        <DialogContent className="sm:max-w-[425px] flex flex-col bg-background text-foreground">
           {AddHabitContent}
         </DialogContent>
       </Dialog>

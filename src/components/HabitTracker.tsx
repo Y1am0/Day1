@@ -8,7 +8,7 @@ import EditHabitDialog from "@/components/Dialogs/EditHabitDialog";
 import AddHabitDialog from "@/components/Dialogs/AddHabitDialog";
 import FloatingMessage from "@/components/FloatingMessage";
 import { Button } from "@/components/ui/button";
-import { normalizeDate } from "@/lib/habitUtils";
+import { scrollToToday } from "@/lib/habitUtils";
 import { useDates } from "@/lib/hooks/useDates";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useHabitStatus } from "@/lib/hooks/useHabitStatus";
@@ -50,16 +50,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
     loadHabits();
   }, [user.id, setHabits]);
 
-  const scrollToToday = () => {
-    const todayElement = document.querySelector(
-      `[data-date="${normalizeDate(new Date())}"]`
-    );
-    todayElement?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "center",
-    });
-  };
+
 
   useEffect(() => {
     scrollToToday();
