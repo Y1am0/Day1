@@ -34,9 +34,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   return (
     <div 
       ref={ref}
-      className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} h-full flex-shrink-0 border-r border-border bg-background text-foreground transition-all duration-300 flex flex-col`}
+      className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} h-full flex-shrink-0 border-r  border-border bg-background text-foreground transition-all duration-300 flex flex-col`}
     >
-      <div className="flex items-center justify-between h-[100px] px-4 bg-background transition-all duration-300">
+      <div className="flex items-center justify-between px-4 bg-background transition-all duration-300">
         {!isSidebarCollapsed && (
           <div className="flex items-center space-x-4 transition-all duration-300">
             <LogoIcon className="text-foreground transition-colors duration-300" />
@@ -44,15 +44,16 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
           </div>
         )}
         <Button 
-          className={`${isSidebarCollapsed ? 'mx-auto' : ''} p-1 transition-all duration-300`}
-          variant="ghost" 
+          className={`${isSidebarCollapsed ? 'mx-auto' : ''} h-[100px] p-1 transition-all duration-300`}
+          variant="hidden" 
           size="icon" 
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         >
           <Menu className="w-full h-auto text-foreground transition-colors duration-300" />
         </Button>
       </div>
-      <div className="flex-grow transition-all duration-300 overflow-y-auto overflow-x-hidden">
+      <div className='overflow-y-auto overflow-x-hidden flex flex-col justify-between h-full'>
+      <div className="flex-grow transition-all duration-300">
         {habits.map(habit => (
           <HabitListItem
             key={habit.id}
@@ -138,6 +139,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
             </span>
           )}
         </Button>
+      </div>
       </div>
     </div>
   )
