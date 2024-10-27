@@ -1,6 +1,6 @@
 import React from "react";
 import { format, isSameDay } from "date-fns";
-import { Hourglass, Check, LoaderPinwheel } from "lucide-react"; // Import Loader2
+import { Hourglass, Check, LoaderPinwheel } from "lucide-react";
 import { CalendarDayProps } from "@/types";
 import { normalizeDate } from "@/lib/habitUtils";
 
@@ -13,6 +13,11 @@ export default function CalendarDay({
 }: CalendarDayProps) {
   const formattedDate = normalizeDate(date);
   const isCurrentDay = isSameDay(date, new Date());
+
+  // dynamic background opacity
+  const calculateOpacity = (consecutiveDays: number) => {
+    return Math.min(1, 0.05 + consecutiveDays * 0.05);
+  };
 
   return (
     <div
@@ -27,7 +32,7 @@ export default function CalendarDay({
         <div className="font-bold text-foreground transition-colors duration-300 ease-in-out">
           {format(date, "EEE")}
         </div>
-        <div className="text-2xl text-foreground transition-colors duration-300 ease-in-out">
+        <div className="text-2xl text-foreground traQnsition-colors duration-300 ease-in-out">
           {format(date, "d")}
         </div>
         <div className="text-xs uppercase text-muted-foreground transition-colors duration-300 ease-in-out">
@@ -37,41 +42,47 @@ export default function CalendarDay({
       {habits.map((habit) => {
         const statusEntry = habitStatus.get(formattedDate)?.get(habit.id);
         const status = statusEntry?.status || "skipped";
-        const consecutiveDays = statusEntry?.consecutiveDays;
-
-        const isLoading = loadingStatus[`${habit.id}-${formattedDate}`]; // Check if this habit and date is loading
+        const consecutiveDays = statusEntry?.consecutiveDays || 0;
+        const isLoading = loadingStatus[`${habit.id}-${formattedDate}`];
 
         return (
           <div
             key={`${habit.id}-${formattedDate}`}
-            className={`h-[100px] border-b border-border flex items-center justify-center cursor-pointer transition-all duration-300 ease-in-out ${
-              status === "done"
-                ? habit.color
-                : status === "planned"
-                ? `${habit.color} bg-opacity-10`
-                : "bg-muted/50"
-            }`}
+            className="h-[100px] border-b border-border flex items-center justify-center cursor-pointer transition-all duration-300 ease-in-out relative"
             onClick={() => toggleStatus(habit.id, formattedDate)}
-            title={`Click to toggle status`}
+            title="Click to toggle status"
           >
-            {status === "done" && (
-              <div className="relative flex items-center justify-center h-full w-full">
-                <Check className="w-8 h-8 text-white transition-colors duration-300 ease-in-out" />
-              
-                <div className="absolute bottom-0 right-0 text-md rounded-full grid place-items-center bg-gradient-to-t from-black/10 shadow overflow-hidden m-1 size-6 text-white">
-                  {isLoading ? (
-                    <LoaderPinwheel className="w-5 h-5 animate-spin text-white" />
-                  ) : (
-                    consecutiveDays !== undefined && (
-                      <span>{consecutiveDays}</span>
-                    )
-                  )}
-                </div>
-              </div>
-            )}
-            {status === "planned" && (
-              <Hourglass className="size-5 text-muted-foreground dark:text-foreground transition-colors duration-300 ease-in-out" />
-            )}
+            <div
+              className={`absolute inset-0 ${
+                status === "done"
+                  ? `${habit.color}`
+                  : status === "planned"
+                  ? `${habit.color} bg-opacity-10`
+                  : "bg-muted/50"
+              }`}
+              style={{
+                opacity:
+                  status === "done" ? calculateOpacity(consecutiveDays) : 1,
+              }}
+            />
+            
+            <div className="relative z-10 flex items-center justify-center h-full w-full">
+              {status === "done" && (
+                <>
+                  <Check strokeWidth={1} className="w-8 h-8 text-black dark:text-white transition-colors duration-300 ease-in-out" />
+                  <div className={`absolute bottom-0 right-0 text-md grid place-items-center m-1 text-white`}>
+                    {isLoading ? (
+                      <LoaderPinwheel className="w-5 h-5 animate-spin text-white" />
+                    ) : (
+                      consecutiveDays > 0 && <span className="text-black dark:text-white">{consecutiveDays}</span>
+                    )}
+                  </div>
+                </>
+              )}
+              {status === "planned" && (
+                <Hourglass className="size-5 text-muted-foreground dark:text-foreground transition-colors duration-300 ease-in-out" />
+              )}
+            </div>
           </div>
         );
       })}
