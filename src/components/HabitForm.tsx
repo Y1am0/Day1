@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as FaIcons from "react-icons/fa6";
@@ -27,7 +26,7 @@ function habitFormReducer(state: FormState, action: FormAction): FormState {
     case "SET_FREQUENCY":
       return { ...state, [action.type.toLowerCase().slice(4)]: action.payload };
     case "SET_HABIT_TYPE":
-      return { ...state, habitType: action.payload};
+      return { ...state, habitType: action.payload };
     case "SET_PREDEFINED_HABIT":
       return { ...state, ...action.payload };
     case "TOGGLE_DAY":
@@ -75,6 +74,10 @@ export default function HabitForm({
     }
     onSubmit({ ...state });
     onClose();
+  };
+
+  const handleSelect = (value: "suggested" | "custom") => {
+    dispatch({ type: "SET_HABIT_TYPE", payload: value });
   };
 
   const handleFrequencyChange = (type: "everyday" | "custom") => {
@@ -145,22 +148,22 @@ export default function HabitForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label>Habit Type</Label>
-        <RadioGroup
-          value={state.habitType}
-          onValueChange={(value: "suggested" | "custom") =>
-            dispatch({ type: "SET_HABIT_TYPE", payload: value })
-          }
-          className="flex space-x-4 mt-1"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="suggested" id="suggested" />
-            <Label htmlFor="suggested">Suggested</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="custom" id="custom" />
-            <Label htmlFor="custom">Create Your Own</Label>
-          </div>
-        </RadioGroup>
+        <div className="flex space-x-4 mt-1">
+          <Button
+            type="button"
+            variant={state.habitType === "suggested" ? "default" : "outline"}
+            onClick={() => handleSelect("suggested")}
+          >
+            Suggested
+          </Button>
+          <Button
+            type="button"
+            variant={state.habitType === "custom" ? "default" : "outline"}
+            onClick={() => handleSelect("custom")}
+          >
+            Create Your Own
+          </Button>
+        </div>
       </div>
 
       {state.habitType === "suggested" ? (
@@ -214,7 +217,9 @@ export default function HabitForm({
               {state.icon ? (
                 <>
                   {renderIcon(state.icon)}
-                  <span className="ml-2">{state.name || "Select an icon"}</span>
+                  <span className="ml-2 overflow-hidden whitespace-nowrap">
+                    {state.name || "Select an icon"}
+                  </span>
                 </>
               ) : (
                 <>
