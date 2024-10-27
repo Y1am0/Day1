@@ -25,8 +25,8 @@ export default function CalendarDay({
       data-date={formattedDate}
     >
       <div
-        className={`h-[100px] text-center p-2 border-b border-border sticky top-0 ${
-          isCurrentDay ? "bg-primary/10" : "bg-background"
+        className={`h-[100px] text-center p-2 border-b border-border sticky z-20 top-0 backdrop-blur-md ${
+          isCurrentDay ? "bg-neutral-200/85 dark:bg-neutral-800/85" : "bg-background/85"
         } flex flex-col justify-center transition-all duration-300 ease-in-out`}
       >
         <div className="font-bold text-foreground transition-colors duration-300 ease-in-out">
