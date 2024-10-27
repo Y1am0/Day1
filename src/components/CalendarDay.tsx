@@ -32,7 +32,7 @@ export default function CalendarDay({
         <div className="font-bold text-foreground transition-colors duration-300 ease-in-out">
           {format(date, "EEE")}
         </div>
-        <div className="text-2xl text-foreground traQnsition-colors duration-300 ease-in-out">
+        <div className="text-2xl text-foreground transition-colors duration-300 ease-in-out">
           {format(date, "d")}
         </div>
         <div className="text-xs uppercase text-muted-foreground transition-colors duration-300 ease-in-out">
@@ -65,7 +65,7 @@ export default function CalendarDay({
                   status === "done" ? calculateOpacity(consecutiveDays) : 1,
               }}
             />
-            
+
             <div className="relative z-10 flex items-center justify-center h-full w-full">
               {status === "done" && (
                 <>
