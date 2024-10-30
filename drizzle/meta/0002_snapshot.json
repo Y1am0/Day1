@@ -1,6 +1,6 @@
 {
-  "id": "fd9321ec-6d1d-4cc8-9d9f-4891d0f212e3",
-  "prevId": "121c2f8b-3bd4-4d1f-9831-a1b9ff88bbfb",
+  "id": "3ed22228-a1d9-48f4-afd1-d74e4b2b5f26",
+  "prevId": "2c9bb40b-0820-4287-be4c-b7c0a6deaf62",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -226,7 +226,7 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
-          "default": 1
+          "default": 0
         }
       },
       "indexes": {},
@@ -303,6 +303,12 @@
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
+        },
+        "order": {
+          "name": "order",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
