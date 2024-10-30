@@ -1,5 +1,5 @@
 {
-  "id": "156e4253-c45e-4e8c-902f-16e35ef3cf8f",
+  "id": "852587b3-29cc-448b-873d-61b56e41d4d1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -220,6 +220,13 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
+        },
+        "consecutiveDays": {
+          "name": "consecutiveDays",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
         }
       },
       "indexes": {},
@@ -296,6 +303,12 @@
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
+        },
+        "order": {
+          "name": "order",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},

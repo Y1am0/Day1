@@ -13,6 +13,7 @@ export interface Habit {
   color: string;
   icon: string;
   frequency: Frequency;
+  order?: number;
 }
 
 export type HabitStatus = Map<

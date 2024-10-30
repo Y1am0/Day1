@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Calendar from "./Calendar";
@@ -17,6 +17,8 @@ import { useFloatingMessage } from "@/lib/hooks/useFloatingMessage";
 import { useDialogManagement } from "@/lib/hooks/useDialogManagement";
 import { Habit } from "@/types";
 import { fetchHabits } from "@/actions";
+import { DropResult } from "react-beautiful-dnd";
+import { updateHabitOrderAction } from "@/actions";
 
 type HabitTrackerProps = {
   user: { id: string };
@@ -31,6 +33,9 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
   const calendarScrollRef = useRef<HTMLDivElement>(null);
+
+  const sidebarExtraContentRef = useRef<HTMLDivElement>(null);
+  const [extraSidebarHeight, setExtraSidebarHeight] = useState(0);
 
   const {
     habits,
@@ -80,6 +85,24 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
     scrollToToday();
   }, []);
 
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source } = result;
+    if (!destination || destination.index === source.index) return;
+
+    const updatedHabits = Array.from(habits);
+    const [movedHabit] = updatedHabits.splice(source.index, 1);
+    updatedHabits.splice(destination.index, 0, movedHabit);
+
+    setHabits(updatedHabits); // Update state with reordered array
+    const habitOrder = updatedHabits.map((habit) => habit.id);
+    const response = await updateHabitOrderAction(user.id, habitOrder);
+
+    if (!response.success) {
+      console.error("Failed to save habit order:", response.error);
+      // Optionally: display an error message or revert state
+    }
+  };
+
   const syncScroll = (source: HTMLDivElement, target: HTMLDivElement) => {
     target.scrollTop = source.scrollTop;
   };
@@ -102,6 +125,12 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
     }
   }, []);
 
+  useEffect(() => {
+    if (sidebarExtraContentRef.current) {
+      setExtraSidebarHeight(sidebarExtraContentRef.current.offsetHeight);
+    }
+  }, [isSidebarCollapsed, habits]);
+
   const handleAddHabitWithMessage = async (habit: Omit<Habit, "id">) => {
     const newHabit = await handleAddHabit(habit);
     closeAddHabitDialog();
@@ -116,27 +145,29 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="flex flex-col h-screen text-foreground transition-colors duration-300">
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
           scrollRef={sidebarScrollRef}
           ref={sidebarRef}
-          habits={habits}
+          habits={habits} // Pass reordered habits to Sidebar
           isSidebarCollapsed={isSidebarCollapsed}
           setIsSidebarCollapsed={setIsSidebarCollapsed}
           onEditHabit={openEditHabitDialog}
           onDeleteHabit={handleRemoveHabit}
           scrollToToday={scrollToToday}
-          isDesktop={isDesktop}
+          extraContentRef={sidebarExtraContentRef}
+          onDragEnd={handleDragEnd} // Pass drag handler
         />
         <Calendar
           verticalScrollRef={calendarScrollRef}
           dates={dates}
-          habits={habits}
+          habits={habits} // Pass reordered habits to Calendar
           habitStatus={habitStatus}
           toggleStatus={handleToggleStatus}
           loadMoreDates={loadMoreDates}
           loadingStatus={loadingStatus}
+          extraBottomSpace={extraSidebarHeight}
         />
       </div>
       <Button

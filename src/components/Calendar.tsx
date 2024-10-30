@@ -19,6 +19,7 @@ interface CalendarProps {
   toggleStatus: (habitId: string, date: string) => void;
   loadMoreDates: () => Promise<void> | void;
   loadingStatus: { [key: string]: boolean };
+  extraBottomSpace: number; // New prop for additional space
 }
 
 const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
@@ -31,6 +32,7 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
       loadMoreDates,
       loadingStatus,
       verticalScrollRef,
+      extraBottomSpace, // Destructure the new prop here
     },
     ref
   ) => {
@@ -170,6 +172,8 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
             />
           ))}
         </div>
+        {/* Spacer div to match the sidebar's additional height */}
+        <div style={{ height: extraBottomSpace }} />
       </div>
     );
   }

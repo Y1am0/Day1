@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS "habit_statuses" (
 	"id" text PRIMARY KEY NOT NULL,
 	"habitId" text NOT NULL,
 	"date" date NOT NULL,
-	"status" "habitStatus" NOT NULL
+	"status" "habitStatus" NOT NULL,
+	"consecutiveDays" integer DEFAULT 0
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "habits" (
@@ -44,7 +45,8 @@ CREATE TABLE IF NOT EXISTS "habits" (
 	"color" text NOT NULL,
 	"icon" text NOT NULL,
 	"frequency" text[] DEFAULT '{}' NOT NULL,
-	"createdAt" timestamp DEFAULT now()
+	"createdAt" timestamp DEFAULT now(),
+	"order" serial NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "session" (

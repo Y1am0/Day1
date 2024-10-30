@@ -7,6 +7,7 @@ import {
   integer,
   pgEnum,
   date,
+  serial,
 } from "drizzle-orm/pg-core";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -112,6 +113,7 @@ export const habits = pgTable("habits", {
   icon: text("icon").notNull(),
   frequency: text("frequency").array().notNull().default([]),
   createdAt: timestamp("createdAt").defaultNow(),
+  order: serial("order"),
 });
 
 export const habitStatusEnum = pgEnum("habitStatus", [
