@@ -16,7 +16,7 @@ import { useHabitManagement } from "@/lib/hooks/useHabitManagement";
 import { useFloatingMessage } from "@/lib/hooks/useFloatingMessage";
 import { useDialogManagement } from "@/lib/hooks/useDialogManagement";
 import { Habit } from "@/types";
-import { fetchHabits } from '@/actions';
+import { fetchHabits } from "@/actions";
 
 type HabitTrackerProps = {
   user: { id: string };
@@ -25,13 +25,39 @@ type HabitTrackerProps = {
 export default function HabitTracker({ user }: HabitTrackerProps) {
   const { dates, loadMoreDates } = useDates();
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(!isDesktop);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(
+    !isDesktop
+  );
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const sidebarScrollRef = useRef<HTMLDivElement>(null);
+  const calendarScrollRef = useRef<HTMLDivElement>(null);
 
-  const { habits, setHabits, handleAddHabit, handleEditHabit, handleRemoveHabit } = useHabitManagement(user.id, []);
-  const { habitStatus, loadingStatus, handleToggleStatus } = useHabitStatus(habits, dates);
-  const { floatingMessage, setFloatingMessage, updateFloatingMessagePosition, showFloatingMessage } = useFloatingMessage(habits);
-  const { isAddHabitOpen, isEditHabitOpen, editingHabit, openAddHabitDialog, closeAddHabitDialog, openEditHabitDialog, closeEditHabitDialog } = useDialogManagement();
+  const {
+    habits,
+    setHabits,
+    handleAddHabit,
+    handleEditHabit,
+    handleRemoveHabit,
+  } = useHabitManagement(user.id, []);
+  const { habitStatus, loadingStatus, handleToggleStatus } = useHabitStatus(
+    habits,
+    dates
+  );
+  const {
+    floatingMessage,
+    setFloatingMessage,
+    updateFloatingMessagePosition,
+    showFloatingMessage,
+  } = useFloatingMessage(habits);
+  const {
+    isAddHabitOpen,
+    isEditHabitOpen,
+    editingHabit,
+    openAddHabitDialog,
+    closeAddHabitDialog,
+    openEditHabitDialog,
+    closeEditHabitDialog,
+  } = useDialogManagement();
 
   useEffect(() => {
     setIsSidebarCollapsed(!isDesktop);
@@ -50,10 +76,30 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
     loadHabits();
   }, [user.id, setHabits]);
 
-
-
   useEffect(() => {
     scrollToToday();
+  }, []);
+
+  const syncScroll = (source: HTMLDivElement, target: HTMLDivElement) => {
+    target.scrollTop = source.scrollTop;
+  };
+
+  useEffect(() => {
+    const sidebar = sidebarScrollRef.current;
+    const calendar = calendarScrollRef.current;
+
+    if (sidebar && calendar) {
+      const handleSidebarScroll = () => syncScroll(sidebar, calendar);
+      const handleCalendarScroll = () => syncScroll(calendar, sidebar);
+
+      sidebar.addEventListener("scroll", handleSidebarScroll);
+      calendar.addEventListener("scroll", handleCalendarScroll);
+
+      return () => {
+        sidebar.removeEventListener("scroll", handleSidebarScroll);
+        calendar.removeEventListener("scroll", handleCalendarScroll);
+      };
+    }
   }, []);
 
   const handleAddHabitWithMessage = async (habit: Omit<Habit, "id">) => {
@@ -73,6 +119,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
     <div className="flex flex-col h-screen bg-background text-foreground transition-colors duration-300">
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
+          scrollRef={sidebarScrollRef}
           ref={sidebarRef}
           habits={habits}
           isSidebarCollapsed={isSidebarCollapsed}
@@ -83,6 +130,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
           isDesktop={isDesktop}
         />
         <Calendar
+          verticalScrollRef={calendarScrollRef}
           dates={dates}
           habits={habits}
           habitStatus={habitStatus}

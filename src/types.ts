@@ -1,7 +1,7 @@
 export type Difficulty = "Easy" | "Medium" | "Hard";
 
 export interface HabitDifficultyProps {
-  difficulty: Difficulty;  // Use the Difficulty type here
+  difficulty: Difficulty; // Use the Difficulty type here
 }
 
 export type Frequency = string[];
@@ -17,7 +17,10 @@ export interface Habit {
 
 export type HabitStatus = Map<
   string,
-  Map<string, { status: "done" | "planned" | "skipped", consecutiveDays?: number}>
+  Map<
+    string,
+    { status: "done" | "planned" | "skipped"; consecutiveDays?: number }
+  >
 >;
 
 export interface User {
@@ -65,6 +68,8 @@ export interface CalendarDayProps {
   habitStatus: HabitStatus;
   toggleStatus: (habitId: string, date: string) => void;
   loadingStatus: { [key: string]: boolean };
+  isDragging: boolean;
+  draggingDistance: number;
 }
 
 export interface HabitFormProps {
