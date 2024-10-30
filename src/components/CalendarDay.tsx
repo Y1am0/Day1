@@ -10,6 +10,8 @@ export default function CalendarDay({
   habitStatus,
   toggleStatus,
   loadingStatus,
+  isDragging,
+  draggingDistance,
 }: CalendarDayProps) {
   const formattedDate = normalizeDate(date);
   const isCurrentDay = isSameDay(date, new Date());
@@ -26,7 +28,9 @@ export default function CalendarDay({
     >
       <div
         className={`h-[100px] text-center p-2 border-b border-border sticky z-20 top-0 backdrop-blur-md ${
-          isCurrentDay ? "bg-neutral-200/85 dark:bg-neutral-800/85" : "bg-background/85"
+          isCurrentDay
+            ? "bg-neutral-200/85 dark:bg-neutral-800/85"
+            : "bg-background/85"
         } flex flex-col justify-center transition-all duration-300 ease-in-out`}
       >
         <div className="font-bold text-foreground transition-colors duration-300 ease-in-out">
@@ -49,7 +53,13 @@ export default function CalendarDay({
           <div
             key={`${habit.id}-${formattedDate}`}
             className="h-[100px] border-b border-border flex items-center justify-center cursor-pointer transition-all duration-300 ease-in-out relative"
-            onClick={() => toggleStatus(habit.id, formattedDate)}
+            onClick={(e) => {
+              if (isDragging || draggingDistance > 5) {
+                e.preventDefault(); // Prevent accidental toggling on drag
+                return;
+              }
+              toggleStatus(habit.id, formattedDate);
+            }}
             title="Click to toggle status"
           >
             <div
@@ -69,12 +79,21 @@ export default function CalendarDay({
             <div className="relative z-10 flex items-center justify-center h-full w-full">
               {status === "done" && (
                 <>
-                  <Check strokeWidth={1} className="w-8 h-8 text-black dark:text-white transition-colors duration-300 ease-in-out" />
-                  <div className={`absolute bottom-0 right-0 text-md grid place-items-center m-1 text-white`}>
+                  <Check
+                    strokeWidth={1}
+                    className="w-8 h-8 text-black dark:text-white transition-colors duration-300 ease-in-out"
+                  />
+                  <div
+                    className={`absolute bottom-0 right-0 text-md grid place-items-center m-1 text-white`}
+                  >
                     {isLoading ? (
                       <LoaderPinwheel className="w-5 h-5 animate-spin text-white" />
                     ) : (
-                      consecutiveDays > 0 && <span className="text-black dark:text-white">{consecutiveDays}</span>
+                      consecutiveDays > 0 && (
+                        <span className="text-black dark:text-white">
+                          {consecutiveDays}
+                        </span>
+                      )
                     )}
                   </div>
                 </>
