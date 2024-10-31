@@ -137,7 +137,7 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     return (
       <div
         ref={calendarRef}
-        className="overflow-x-auto overflow-y-auto h-full"
+        className="overflow-x-auto overflow-y-auto h-full cursor-grab active:cursor-grabbing"
         onMouseDown={handleMouseDown}
       >
         <div

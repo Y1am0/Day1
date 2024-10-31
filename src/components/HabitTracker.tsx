@@ -17,7 +17,6 @@ import { useFloatingMessage } from "@/lib/hooks/useFloatingMessage";
 import { useDialogManagement } from "@/lib/hooks/useDialogManagement";
 import { Habit } from "@/types";
 import { fetchHabits } from "@/actions";
-import { DropResult } from "react-beautiful-dnd";
 import { updateHabitOrderAction } from "@/actions";
 
 type HabitTrackerProps = {
@@ -85,14 +84,7 @@ export default function HabitTracker({ user }: HabitTrackerProps) {
     scrollToToday();
   }, []);
 
-  const handleDragEnd = async (result: DropResult) => {
-    const { destination, source } = result;
-    if (!destination || destination.index === source.index) return;
-
-    const updatedHabits = Array.from(habits);
-    const [movedHabit] = updatedHabits.splice(source.index, 1);
-    updatedHabits.splice(destination.index, 0, movedHabit);
-
+  const handleDragEnd = async (updatedHabits: Habit[]) => {
     setHabits(updatedHabits); // Update state with reordered array
     const habitOrder = updatedHabits.map((habit) => habit.id);
     const response = await updateHabitOrderAction(user.id, habitOrder);
