@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import {
   Menu,
   Sun,
@@ -9,13 +9,13 @@ import {
   CalendarArrowDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import HabitListItem from "./SingleHabit/HabitListItem";
 import { Habit } from "@/types";
 import { useTheme } from "./theme/ThemeContext";
 import LogoIcon from "@/app/icons/logo";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import SortableHabitItem from "./SingleHabit/SortableHabitItem";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,11 +23,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  DragDropContext,
-  Draggable,
-  Droppable,
-  DropResult,
-} from "react-beautiful-dnd";
+  DndContext,
+  closestCenter,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  KeyboardSensor,
+  DragEndEvent,
+  DragStartEvent,
+  UniqueIdentifier,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface SidebarProps {
   scrollRef: React.RefObject<HTMLDivElement>;
@@ -37,7 +48,7 @@ interface SidebarProps {
   onEditHabit: (habit: Habit) => void;
   onDeleteHabit: (id: string) => void;
   scrollToToday: () => void;
-  onDragEnd: (result: DropResult) => void;
+  onDragEnd: (updatedHabits: Habit[]) => void;
   extraContentRef: React.RefObject<HTMLDivElement>;
 }
 
@@ -58,6 +69,36 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
   ) => {
     const { theme, toggleTheme } = useTheme();
     const { data: session } = useSession();
+
+    const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+
+    const sensors = useSensors(
+      useSensor(PointerSensor, {
+        activationConstraint: {
+          distance: 10, // Start dragging after moving 10px vertically
+        },
+      }),
+      useSensor(KeyboardSensor, {
+        coordinateGetter: sortableKeyboardCoordinates,
+      })
+    );
+
+    const handleDragStart = (event: DragStartEvent) => {
+      setActiveId(event.active.id);
+    };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      setActiveId(null);
+
+      if (over && active.id !== over.id) {
+        const oldIndex = habits.findIndex((habit) => habit.id === active.id);
+        const newIndex = habits.findIndex((habit) => habit.id === over.id);
+        const updatedHabits = arrayMove(habits, oldIndex, newIndex);
+        onDragEnd(updatedHabits);
+      }
+    };
 
     return (
       <div
@@ -87,53 +128,34 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
           </Button>
         </div>
 
-        {/* Drag and Drop Context */}
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div
-            ref={scrollRef}
-            className="overflow-y-auto overflow-x-hidden flex flex-col justify-between h-full"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={habits.map((habit) => habit.id)}
+            strategy={verticalListSortingStrategy}
           >
-            <Droppable droppableId="habits">
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className="flex-grow transition-all duration-300"
-                >
-                  {habits.map((habit, index) => (
-                    <Draggable
-                      key={habit.id}
-                      draggableId={habit.id}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          style={{
-                            ...provided.draggableProps.style,
-                            cursor: "grab", // Optional for better user feedback
-                          }}
-                        >
-                          <HabitListItem
-                            habit={habit}
-                            onEdit={onEditHabit}
-                            onDelete={onDeleteHabit}
-                            isCollapsed={isSidebarCollapsed}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </div>
-        </DragDropContext>
+            <div
+              ref={scrollRef}
+              className="overflow-y-auto overflow-x-hidden flex flex-col  h-full"
+            >
+              {habits.map((habit) => (
+                <SortableHabitItem
+                  key={habit.id}
+                  habit={habit}
+                  onEdit={onEditHabit}
+                  onDelete={onDeleteHabit}
+                  isCollapsed={isSidebarCollapsed}
+                  activeId={activeId}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
-        {/* Additional Sidebar Options */}
         <div
           ref={extraContentRef}
           className="p-4 space-y-2 transition-all duration-300"
